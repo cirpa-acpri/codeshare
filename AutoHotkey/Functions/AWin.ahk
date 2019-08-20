@@ -19,6 +19,10 @@
 ; that includes the passed text anywhere. So if you have multiple windows with "Excel" in the
 ; title, and you AWin("Excel"), it will be satisfied by *any* of those titled windows. You'll 
 ; have to give it more specific terms if you want it to be more specific.
+;
+; Note also: This function *reloads the script* if a user hits "cancel". That was my attempt
+; at stopping whatever operation was happening in AutoHotkey from happening, but your case
+; may call for something different.
 ; ---------------------------------------------------------------------------------
 
 AWin(wname)
