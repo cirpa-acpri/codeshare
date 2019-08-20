@@ -7,7 +7,7 @@ Typically this means, if you download these scripts and run them, nothing will h
 #Include <script>
 ~~~~
 
-If you haven't specified a working directory in your own script, you may want to do so by using the following code (otherwise, you'll need to link to the full file path in your _Include_ statement):
+If you haven't specified a working directory in your own script, you may want to do so by using the following code:
 ~~~~
 ; Sets the working directory as below...
 SetWorkingDir C:\Scripts
@@ -17,3 +17,4 @@ SetWorkingDir C:\Scripts
 ; Sets the working directory to the same one where the script is located...
 SetWorkingDir %A_ScriptDir%
 ~~~~
+Otherwise, you'll need to link to the full file path in your _Include_ statement.
