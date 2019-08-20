@@ -50,7 +50,7 @@ return
 
 4. Open Facebook... For work purposes...
 ~~~~
-^+f:: ; Facebook
+^+f::
 IfWinExist, Facebook
 {
 	WinActivate, Facebook
@@ -64,6 +64,7 @@ return
 
 5. Spit out random ASCII characters, CTRL+SHIFT+\
 ~~~~
+^+\::
 Random, charvar, 33, 255
 Send % Chr(charvar)
 return
