@@ -14,9 +14,16 @@
 ; cause some minor havoc when their desired windows are not available, the script serves as 
 ; a failsafe and gives a warning when a specified window is not available, preventing scripts
 ; from automatically continuing.
+;
+; Note: This function sets the "TitleMatchMode" to 2, meaning it will wait for any window
+; that includes the passed text anywhere. So if you have multiple windows with "Excel" in the
+; title, and you AWin("Excel"), it will be satisfied by *any* of those titled windows. You'll 
+; have to give it more specific terms if you want it to be more specific.
 ; ---------------------------------------------------------------------------------
+
 AWin(wname)
 {
+	SetTitleMatchMode, 2
 	WinWait, %wname%,,1
 	if ErrorLevel = 1
 	{
