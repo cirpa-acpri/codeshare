@@ -10,7 +10,7 @@ Our mission here is to give CIRPA Members an opportunity to *see what people are
 ### Features
 
 * Visualization gallery
-> Browse a gallery of data visualizations for a variety of platforms with instructions on how to create them yourself using your own data.
+> Browse a gallery of data visualizations for a variety of platforms with code & instructions on how to create them yourself using your own data.
 
 ---
 ### Code Areas
