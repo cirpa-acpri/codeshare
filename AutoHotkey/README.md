@@ -75,3 +75,6 @@ return
 :*?:@con::@conestogac.on.ca
 :*?c:@IR::institutionalresearch@conestogac.on.ca
 ~~~~
+
+
+For more examples, go to [https://www.autohotkey.com/docs/Tutorial.htm](https://www.autohotkey.com/docs/Tutorial.htm)
