@@ -17,4 +17,4 @@ Our mission here is to give CIRPA Members an opportunity to *see what people are
 * SPSS
 > Syntax, examples, and useful tips for using this mainstream juggernaut of a statistical software.
 * STATA
-> If you like SPSS and R, you'll love STATA.
+> Common helpful use cases and code examples for this affordable yet powerful statistical package.
