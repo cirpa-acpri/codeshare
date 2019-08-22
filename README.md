@@ -1,6 +1,7 @@
 # IR
 
 This is Fraser's attempt at starting playing with GitHub.
+For more information about Markdown, visit [https://www.markdownguide.org/basic-syntax/](https://www.markdownguide.org/basic-syntax/)
 
 Our mission here is to give CIRPA Members an opportunity to *see what people are using, and contribute your own code & creations.*
 
