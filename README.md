@@ -5,12 +5,16 @@ This is Fraser's attempt at starting playing with GitHub.
 For more information about Markdown, visit [https://www.markdownguide.org/basic-syntax/](https://www.markdownguide.org/basic-syntax/)
 
 Our mission here is to give CIRPA Members an opportunity to *see what people are using, and contribute your own code & creations.*
+
 ---
 ### Features
+
 * Visualization gallery
 > Browse a gallery of data visualizations for a variety of platforms with instructions on how to create them yourself using your own data.
+
 ---
 ### Code Areas
+
 * [AutoHotkey](https://github.com/Sopwith/IR/tree/master/AutoHotkey)
 > Create shortcuts, macros, scripts and automate tasks in this useful tool for automation in Windows. 
 * [Excel & VisualBasic](https://github.com/Sopwith/IR/tree/master/Excel%20%26%20Visual%20Basic)
