@@ -1,12 +1,13 @@
-﻿; Fraser Hay, Conestoga College (Kitchener, Ontario, Canada)
+; Fraser Hay, Conestoga College (Kitchener, Ontario, Canada)
 ; fhay@conestogac.on.ca
 ;
-; This script is *supposed* to launch calculator when you press WIN+C.
+; This script is *supposed* to launch calculator when you press WIN+C. In Windows 7, it doesn't have to be this 
+; complicated: all you have to do is check for the program being around, and if not, launch it. But ; Windows 10 
+; makes launching the calculator stupid. See: https://www.autohotkey.com/boards/viewtopic.php?t=43997. This is
+; my best solution so far. Sometimes it doesn't work, for reasons I can't explain. If you hit the hotkey and 
+; nothing happens, then just try launching it (calculator) manually. It should work after that.
 ;
-; Sometimes it doesn't work, for reasons I can't explain. If you hit the hotkey and nothing
-; happens, then just try launching it manually. It should work after that.
-;
-; Windows 10 makes launching the calculator stupid. See: https://www.autohotkey.com/boards/viewtopic.php?t=43997
+
 
 #c::
 SetTitleMatchMode, 3 ; Must match exactly
