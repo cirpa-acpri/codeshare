@@ -52,6 +52,6 @@ return
 ; ---------------------------------------------------------------------------------
 Insert::
 MouseGetPos, mtempX, mtempY
-Click, 264, 191 ; You may need to update this on different versions of Excel
+Click, 264, 191 ; You may need to update this x,y reference on different versions of Excel
 MouseMove, mtempX, mtempY
 return
