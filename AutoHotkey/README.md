@@ -77,4 +77,4 @@ return
 ~~~~
 
 
-For more examples, go to [https://www.autohotkey.com/docs/Tutorial.htm](https://www.autohotkey.com/docs/Tutorial.htm)
+For more examples, go to [https://www.autohotkey.com/docs/Tutorial.htm](https://www.autohotkey.com/docs/Tutorial.htm). You can also check out the [script showcase](https://www.autohotkey.com/docs/scripts/).
