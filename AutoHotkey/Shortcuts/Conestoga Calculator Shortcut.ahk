@@ -6,8 +6,6 @@
 ; makes launching the calculator stupid. See: https://www.autohotkey.com/boards/viewtopic.php?t=43997. This is
 ; the best solution I've found so far. Sometimes it doesn't work, for reasons I can't explain. If you hit the 
 ; hotkey and nothing happens, then just try launching it (calculator) manually. It should work after that.
-;
-
 
 #c::
 SetTitleMatchMode, 3 ; Must match exactly
