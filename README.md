@@ -18,7 +18,7 @@ Our mission here is to give CIRPA Members an opportunity to *see what people are
 * [AutoHotkey](https://github.com/Sopwith/IR/tree/master/AutoHotkey)
 > Create shortcuts, macros, scripts and automate tasks in this useful tool for automation in Windows. 
 * [Excel & VisualBasic](https://github.com/Sopwith/IR/tree/master/Excel%20%26%20Visual%20Basic)
-> Productivity tips, tricks, functional examples and templates for the world's most popular spreadsheet software, and a workhorse of virtually all IR offices. 
+> Productivity tips, tricks, functional examples and templates for the world's most popular spreadsheet software - the workhorse of virtually all IR offices. 
 * R
 > Work with data, run statistics, explore possibilities and create useful visualizations in this ever-evolving and powerful open-source statistical program. See what people are using it for in the world of IR.
 * Python
