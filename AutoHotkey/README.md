@@ -70,7 +70,7 @@ Send % Chr(charvar)
 return
 ~~~~
 
-6. Auto-complete your email address upon a cue set of keystrokes (eg. here: @con, @IR)
+6. [Auto-complete](https://www.autohotkey.com/docs/Hotstrings.htm) your email address upon a cue set of keystrokes (eg. here: @con, @IR)
 ~~~~
 :*?:@con::@conestogac.on.ca
 :*?c:@IR::institutionalresearch@conestogac.on.ca
