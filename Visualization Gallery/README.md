@@ -6,11 +6,11 @@ This area is meant to be a place of inspiration. Take a look around and see what
 Have you made some pretty cool graphs and charts, and want to share them with your CIRPA colleagues? Send them to us (sechilds@yorku; fhay@conestogac.on.ca), with your code and instructions for how you made them, and we'll try to feature them here.
 
 ## External Visualization Gallery Links
-[Excel Gallery](https://support.office.com/en-us/article/available-chart-types-in-office-a6187218-807e-4103-9e0a-27cdb19afb90)
-[R Gallery](https://www.r-graph-gallery.com/index.html) 
-[Python Gallery](https://python-graph-gallery.com/)
-[STATA Gallery](https://www.stata.com/support/faqs/graphics/gph/stata-graphs/)
-[SPSS Gallery](https://stats.idre.ucla.edu/spss/seminars/spssgraphics/graphics-in-spss/)
+[Excel Gallery](https://support.office.com/en-us/article/available-chart-types-in-office-a6187218-807e-4103-9e0a-27cdb19afb90)<br>
+[R Gallery](https://www.r-graph-gallery.com/index.html)<br>
+[Python Gallery](https://python-graph-gallery.com/)<br>
+[STATA Gallery](https://www.stata.com/support/faqs/graphics/gph/stata-graphs/)<br>
+[SPSS Gallery](https://stats.idre.ucla.edu/spss/seminars/spssgraphics/graphics-in-spss/)<br>
 
 
 ## CIRPA Contributors
