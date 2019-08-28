@@ -32,7 +32,7 @@ You can easily download or work with files by creating your own clone or fork of
 
 ![Raw button](https://www.dropbox.com/s/fyt1qz0qeqjn0vf/GitHub-RawButton.png?raw=1)
 
-3. Save the file/script and use it.
+3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
     
 This is Fraser's attempt at starting playing with GitHub.
 
