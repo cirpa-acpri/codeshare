@@ -4,7 +4,7 @@
 ---
 ### Features
 
-* [Visualization gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery)
+* [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery)
 > Browse a gallery of data visualizations for a variety of platforms with code & instructions on how to create them yourself using your own data.
 
 ---
