@@ -14,13 +14,13 @@ Have you made some pretty cool graphs and charts, and want to share them with yo
 
 
 ## CIRPA Contributors
-<table style="width:100%">
+<table>
   <tr>
-    <th style="width:230px">Preview</th>
+    <th>Preview</th>
     <th>Details</th> 
   </tr>
   <tr>
     <td><img src="https://github.com/Sopwith/IR/blob/master/Visualization%20Gallery/Images/STATA-Scatter-Multicolor.png" alt="Multi-coloured scatterplot in STATA" title="Multi-coloured scatterplot in STATA" width="450"/></td>
-    <td><u>Platform:</u> STATA<br><u>Description:</u> Multi-coloured scatter plot. I may have adjusted the colours manually in the graph editor.<br><u>Code:</u> ~~~~ twoway (scatter pnavg hsavg) (scatter pnavg hsavg if prestudyprog == 1214) (scatter pnavg hsavg if prestudyprog == 1306) (scatter pnavg hsavg if newcurric == 1, mcolor(lavender)) ~~~~ <br><u>Contributor:</u> Fraser Hay<br><u>Contact:</u> fhay@conestogac.on.ca</td>
+    <td>PLATFORM: STATA<br>DESCRIPTION: Multi-coloured scatter plot. I may have adjusted the colours manually in the graph editor.<br>CODE: twoway (scatter pnavg hsavg) (scatter pnavg hsavg if prestudyprog == 1214) (scatter pnavg hsavg if prestudyprog == 1306) (scatter pnavg hsavg if newcurric == 1, mcolor(lavender))<br>Contributor: Fraser Hay<br>Contact: fhay@conestogac.on.ca</td>
    <tr>
 </table>
