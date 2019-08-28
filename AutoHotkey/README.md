@@ -11,7 +11,7 @@ Code is separated into two types, which may overlap at times. They are all meant
 ### How to Download and use a script
 1. Click on the script you want.
 2. Right-click the "Raw" button on the top of the file's text box interface.
-3. Save the script somewhere you'll remember.
+3. Click "Save Link As..." (or equivalent in your browser) to save the script somewhere you'll remember.
 4. If you have AutoHotkey installed, you can just double-click the script to run / load it. Or you can edit the .AHK file in any text editor.
 
 ## Introduction for Beginners: Starting Off
