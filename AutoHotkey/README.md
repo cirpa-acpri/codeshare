@@ -8,6 +8,12 @@ Code is separated into two types, which may overlap at times. They are all meant
 * **Shortcuts** are where we put fun hotkeys, subroutines, and time-saving measures that are aimed at accomplishing a small and/or useful task.
 * **Functions** are where we put code building blocks for people to use, to save time inside their own scripts.
 
+## How to Download and use a script
+1. Click on the script you want.
+2. Right-click the "Raw" button on the top of the file's text box interface.
+3. Save the script somewhere you'll remember.
+4. If you have AutoHotkey installed, you can just double-click the script to run / load it. Or you can edit the .AHK file in any text editor.
+
 ## Introduction for Beginners: Starting Off
 Once you install AutoHotkey, the program operates using scripts, which are just text files with code, typically with an .AHK extension. Remember you can edit .AHK files in any text editor, like notepad. Once you create an AHK script, you can run/load it as if it was a program by double-clicking it, or running it with AutoHotkey. Scripts can be closed by finding the AutoHotkey tray icon for the script and closing it, or going to the Task Manager and closing the AutoHotkey process.
 
