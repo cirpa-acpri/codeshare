@@ -27,17 +27,12 @@ As a jump-start example, here's a script of my top-3 favourite shortcuts. You ca
 
 ## A few examples of what you can do...
 
-1. Make your computer talk to you
-~~~~
-ComObjCreate("SAPI.SpVoice").Speak("I'm sorry Dave, I'm afraid I can't do that.")
-~~~~
-
-2. Run Notepad using WIN+N
+1. Run Notepad using WIN+N
 ~~~~
 #n::run, C:\Program Files (x86)\Notepad++\notepad++.exe
 ~~~~
 
-3. Run the Windows Snipper Tool with CTRL+ALT+S
+2. Run the Windows Snipper Tool with CTRL+ALT+S
 ~~~~
 ^!s::
 IfWinExist, Snipping Tool
@@ -54,7 +49,7 @@ else
 return
 ~~~~
 
-4. Open Facebook... For work purposes...
+3. Open Facebook... For work purposes...
 ~~~~
 ^+f::
 IfWinExist, Facebook
@@ -68,7 +63,7 @@ else
 return
 ~~~~
 
-5. Spit out random ASCII characters, CTRL+SHIFT+\
+4. Spit out random ASCII characters, CTRL+SHIFT+\
 ~~~~
 ^+\::
 Random, charvar, 33, 255
@@ -76,11 +71,15 @@ Send % Chr(charvar)
 return
 ~~~~
 
-6. [Auto-complete](https://www.autohotkey.com/docs/Hotstrings.htm) your email address upon a cue set of keystrokes (eg. here: @con, @IR)
+5. [Auto-complete](https://www.autohotkey.com/docs/Hotstrings.htm) your email address upon a cue set of keystrokes (eg. here: @con, @IR)
 ~~~~
 :*?:@con::@conestogac.on.ca
 :*?c:@IR::institutionalresearch@conestogac.on.ca
 ~~~~
 
+6. Make your computer talk to you
+~~~~
+ComObjCreate("SAPI.SpVoice").Speak("I'm sorry Dave, I'm afraid I can't do that.")
+~~~~
 
 For more examples, go to [https://www.autohotkey.com/docs/Tutorial.htm](https://www.autohotkey.com/docs/Tutorial.htm). You can also check out the [script showcase](https://www.autohotkey.com/docs/scripts/).
