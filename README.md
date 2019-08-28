@@ -1,5 +1,4 @@
 # IR
-
 ### __Our mission here is to give CIRPA Members an opportunity to see what thier IR fellows are using, and allow you to contribute your own code & creations for others to see.__
 
 ---
