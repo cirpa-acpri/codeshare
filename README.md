@@ -29,7 +29,7 @@ You can easily download or work with files by creating your own clone or fork of
 1. Click on the file/script you want.
 2. Right-click the "Raw" button on the top of the file's text box interface.
 
-![Raw button](https://www.dropbox.com/sh/455soy5cfw7ounl/AABs11lJJMcKOhLMXIuGiTmOa?raw=1)
+![Raw button](https://www.dropbox.com/s/fyt1qz0qeqjn0vf/GitHub-RawButton.png?raw=1)
 
 3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
     
