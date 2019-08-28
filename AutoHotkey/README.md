@@ -8,7 +8,7 @@ Code is separated into two types, which may overlap at times. They are all meant
 * **Shortcuts** are where we put fun hotkeys, subroutines, and time-saving measures that are aimed at accomplishing a small and/or useful task.
 * **Functions** are where we put code building blocks for people to use, to save time inside their own scripts.
 
-## How to Download and use a script
+### How to Download and use a script
 1. Click on the script you want.
 2. Right-click the "Raw" button on the top of the file's text box interface.
 3. Save the script somewhere you'll remember.
