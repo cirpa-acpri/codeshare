@@ -1,6 +1,6 @@
 # IR
 
-__Our mission here is to give CIRPA Members an opportunity to *see what people are using, and contribute your own code & creations.__
+__Our mission here is to give CIRPA Members an opportunity to see what people are using, and contribute your own code & creations.__
 
 ---
 ### Features
