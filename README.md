@@ -20,7 +20,7 @@
 > Do basically anything that needs doing on a computer while learning one of the most popular new open-source programming languages out there. Scripts, modules and subroutines that you can use in your travels.
 * SPSS
 > Syntax, examples, and useful tips for using this mainstream juggernaut of a statistical software.
-* STATA
+* Stata
 > Common helpful use cases and code examples for this affordable yet powerful statistical package.
 
 ---
