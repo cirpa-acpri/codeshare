@@ -4,4 +4,13 @@ According to [Stack Overflow](https://insights.stackoverflow.com/trends?tags=jav
 
 ![Programming Language Graph](stack_overflow_languages.svg)
 
+* [Python.org](https://www.python.org/)
+* [Anaconda](https://www.anaconda.com/) - a good way to install scientific Python on your machine
+
+## PyCon Canada
+
+[PyCon Canada](https://2019.pycon.ca/) will be held in Toronto on November 16-19
+and it will feature a **PyData** track,
+so there will be plenty of content for IR folks using Python.
+
 
