@@ -4,7 +4,9 @@ Excel<br>
 
 Excel is a spreadsheet software developed by Microsoft. It features calculation, graphing tools, pivot tables, and a macro programming language called "Visual Basic for Applications". It largely remains the industry standard for spreadsheets. It obviously is one of the most common ways of working with data, tables and graphs in many small IR offices. If your data is "small" (under 1M rows and ~16k columns), Excel is usually a decent way to interface with it and distribute it to colleagues.
 
-Excel has a variety of intermediate and advanced-level features that are often overlooked, and can be incredibly useful to IR teams in their ad-hoc, stop-gap, and even main-line work. 
+Excel has a variety of intermediate and advanced-level features that are often overlooked, and can be incredibly useful to IR teams in their ad-hoc, stop-gap, and even main-line work.
+
+**Be a trend-setter!** - Remember to check out the [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery) and submit your own creations for others to see and copycat.
 
 ## What's here
 We currently have the following categories of things on-offer here:
@@ -29,3 +31,8 @@ These are things you should be aware of that Excel can do; and if don't know how
 * Hosting Excel documents on SharePoint: You can embed Excel documents and parts onto SharePoint for people to interact with. (Read-only)
 * VBA Macros: Create yourself some shortcuts and speed up your routine work.
 * VBA Macros - Reporting Loops: Have a reporting template but need a document exported for hundreds of different unique cases / entites? Use VBA to run through the entire list in a few minutes, spitting out a correctly formatted report for each.
+
+## Learning Excel - From Beginner to Advanced
+Links to resources as submitted by members:
+* A basic overview of VLOOKUP, one of the more useful commands: [https://support.office.com/en-us/article/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1](https://support.office.com/en-us/article/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1)
+* Example of INDEX and MATCH: [https://www.deskbright.com/excel/using-index-match/](https://www.deskbright.com/excel/using-index-match/)
