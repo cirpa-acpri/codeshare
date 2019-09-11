@@ -34,3 +34,5 @@ These are things you should be aware of that Excel can do; and if don't know how
 
 ## Learning Excel - From Beginner to Advanced
 Links to resources as submitted by members:
+* A basic overview of VLOOKUP, one of the more useful commands: [https://support.office.com/en-us/article/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1](https://support.office.com/en-us/article/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1)
+* Example of INDEX and MATCH: [https://www.deskbright.com/excel/using-index-match/](https://www.deskbright.com/excel/using-index-match/)
