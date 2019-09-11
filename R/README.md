@@ -9,8 +9,8 @@ R<br>
 ## What's here
 * **Code** - Until we have a need to start sorting code into categories, it can all go into this folder! Upload anything you are using or find useful. 
 
-**Please ensure all submissions are adequately commented, both with an introduction section at the top, and in-line whenever useful. Also please ensure your code identifies any required packages or dependencies.<br>
-Example:**
+**Please ensure all submissions are adequately commented, both with an introduction section at the top, and in-line whenever useful. Also please ensure your code identifies any required packages or dependencies.**<br>
+*Example:*
 ```
 # Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca
 # This code calculates and displays the sum of 2+2.
