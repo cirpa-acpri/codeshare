@@ -7,7 +7,10 @@ R<br>
 **Be a trend-setter!** - Remember to check out the [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery) and submit your own creations for others to see and copycat. Show us what you've got!
 
 ## What's here
-* **Code** - Until we have a need to start sorting code into categories, it can all go into this folder! Upload anything you are using or find useful. 
+* **Code** - Until we have a need to start sorting code into categories, it can all go into this folder! Upload anything you are using or find useful.
+  * Useful scripts
+  * Interesting discoveries
+  * Your favourite use cases / output
 
 **Please ensure all submissions are adequately commented, both with an introduction section at the top, and in-line whenever useful. Also please ensure your code identifies any required packages or dependencies.**<br>
 *Example:*
