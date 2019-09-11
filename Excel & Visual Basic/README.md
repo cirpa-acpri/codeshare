@@ -31,3 +31,6 @@ These are things you should be aware of that Excel can do; and if don't know how
 * Hosting Excel documents on SharePoint: You can embed Excel documents and parts onto SharePoint for people to interact with. (Read-only)
 * VBA Macros: Create yourself some shortcuts and speed up your routine work.
 * VBA Macros - Reporting Loops: Have a reporting template but need a document exported for hundreds of different unique cases / entites? Use VBA to run through the entire list in a few minutes, spitting out a correctly formatted report for each.
+
+## Learning Excel - From Beginner to Advanced
+Links to resources as submitted by members:
