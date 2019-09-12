@@ -1,6 +1,5 @@
 # IR
 ### __Our mission here is to give CIRPA Members an opportunity to see what their IR fellows are using, and allow you to contribute your own code & creations for others to see.__
-
 ---
 ### Features
 
@@ -18,9 +17,9 @@
 > Work with data, run statistics, explore possibilities and create useful visualizations in this ever-evolving and powerful open-source statistical program. See what people are using it for in the world of IR.
 * Python
 > Do basically anything that needs doing on a computer while learning one of the most popular new open-source programming languages out there. Scripts, modules and subroutines that you can use in your travels.
-* SPSS
+* [SPSS](https://github.com/Sopwith/IR/tree/master/SPSS)
 > Syntax, examples, and useful tips for using this mainstream juggernaut of a statistical software.
-* Stata
+* [Stata](https://github.com/Sopwith/IR/tree/master/Stata)
 > Common helpful use cases and code examples for this affordable yet powerful statistical package.
 
 ---
@@ -32,7 +31,3 @@ You can easily download or work with files by creating your own clone or fork of
 ![Raw button](https://www.dropbox.com/s/fyt1qz0qeqjn0vf/GitHub-RawButton.png?raw=1)
 
 3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
-    
-This is Fraser's attempt at starting playing with GitHub.
-
-For more information about Markdown, visit [https://www.markdownguide.org/basic-syntax/](https://www.markdownguide.org/basic-syntax/)

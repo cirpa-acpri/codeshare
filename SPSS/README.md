@@ -8,20 +8,21 @@ IBM's SPSS Statistics (originally Statistical Package for the Social Sciences) i
 
 ## What's here?
 * **Syntax** - Until we have a need to start sorting code into categories, it can all go into this folder! Upload anything you are using or find useful.
-  * Useful scripts
-  * Interesting discoveries
-  * Your favourite use cases / output
+  * Useful syntax
+  * Example projects
+  * Your favourite outputs, and how to interpret them
 
 **Please ensure all submissions are adequately commented, both with an introduction section at the top, and in-line whenever useful.**<br>
 *Example:*
 ```
 * Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca.
-* Demonstration of AUTORECODE, which is useful when you have a variable of just captions, but want to make it into a coded variable.
+* Demonstration of AUTORECODE, which is useful when you have a variable of just captions, 
+* but want to make it into a coded variable.
 
 AUTORECODE varible			* Source
-	/INTO recoded_variable 	* Output
+	/INTO recoded_variable 		* Output
 	/BLANK MISSING			* Optional: Set blanks to missing.
-	/PRINT.					* Optional: Show a coding scheme table.
+	/PRINT.				* Optional: Show a coding scheme table.
 ```
 
 * **Useful links** that we've stumbled across, providing useful information, or showcasing something useful or interesting.
@@ -36,4 +37,4 @@ You can easily download or work with files by creating your own clone or fork of
 3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
 
 ## Helpful Links
-* UCLA - Institute for Digital Research & Education - SPSS FAQ: How to do basically anything in SPSS, with examples and instructions. https://stats.idre.ucla.edu/spss/faq/
+* UCLA - Institute for Digital Research & Education - SPSS FAQ: How to do basically anything basic in SPSS, with examples and instructions. https://stats.idre.ucla.edu/spss/faq/
