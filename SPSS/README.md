@@ -1,26 +1,31 @@
-R<br>		
-<img src="https://www.r-project.org/Rlogo.png" alt="R Logo" title="Multi-coloured scatterplot in STATA" width="100"/>
+SPSS<br>		
+<img src="https://webcms.colostate.edu/ramtech/media/sites/136/2017/02/SPSS-transparent-web-banner.png" alt="SPSS Logo" title="SPSS" width="400"/>
 =======
 
-[**R**](https://www.r-project.org/) is a programming language and free software environment for statistical computing and graphics supported by the R Foundation for Statistical Computing. The R language is widely used among statisticians and data miners for developing statistical software and data analysis. Although R has a command line interface, there are several graphical user interfaces, such as [RStudio](https://www.rstudio.com/), an integrated development environment. 
+IBM's SPSS Statistics (originally Statistical Package for the Social Sciences) is a software package used for statistical analysis. It features a default suite of statistical capabilities, and features many optional proprietary add-ons for a myriad of niches across business, science, social science, health, and beyond. Something of a juggernaut, it is one of the most powerful, biggest-business and longest-running statistical packages on the market, as well as one of the most expensive. It's a common application for statistical analysis in many older IR offices.
 
-**Be a trend-setter!** - Remember to check out the [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery) and submit your own creations for others to see and copycat. Show us what you've got!
+**Be a trend-setter!** - Remember to check out the [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery) and submit your own creations for others to see and copycat.
 
-## What's here
-* **Code** - Until we have a need to start sorting code into categories, it can all go into this folder! Upload anything you are using or find useful.
+## What's here?
+* **Syntax** - Until we have a need to start sorting code into categories, it can all go into this folder! Upload anything you are using or find useful.
   * Useful scripts
   * Interesting discoveries
   * Your favourite use cases / output
 
-**Please ensure all submissions are adequately commented, both with an introduction section at the top, and in-line whenever useful. Also please ensure your code identifies any required packages or dependencies.**<br>
+**Please ensure all submissions are adequately commented, both with an introduction section at the top, and in-line whenever useful.**<br>
 *Example:*
 ```
-# Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca
-# This code calculates and displays the sum of 2+2.
+* Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca.
+* Demonstration of AUTORECODE, which is useful when you have a variable of just captions, but want to make it into a coded variable.
 
-a = 2+2
-print(a) # Display output
+AUTORECODE varible			* Source
+	/INTO recoded_variable 	* Output
+	/BLANK MISSING			* Optional: Set blanks to missing.
+	/PRINT.					* Optional: Show a coding scheme table.
 ```
+
+* **Useful links** that we've stumbled across, providing useful information, or showcasing something useful or interesting.
+
 ## How to Download a file
 You can easily download or work with files by creating your own clone or fork of parts of the CIRPA repository. But if you just want to download a single file:
 1. Click on the file/script you want.
@@ -30,9 +35,5 @@ You can easily download or work with files by creating your own clone or fork of
 
 3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
 
-## Getting started in R
-There are many ways to go about starting and learning R. Google will let you dive into many of these. 
-
-Our preferred way to jump in for beginners is to simply [download and install R](http://cran.utstat.utoronto.ca/) itself, then [RStudio](https://www.rstudio.com/products/rstudio/download/#download) (or a similar integrated development environment (IDE)). Launch RStudio, and you're ready to start playing with the code!
-
 ## Helpful Links
+* UCLA - Institute for Digital Research & Education - SPSS FAQ: How to do basically anything in SPSS, with examples and instructions. https://stats.idre.ucla.edu/spss/faq/
