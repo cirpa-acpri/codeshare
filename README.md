@@ -1,4 +1,4 @@
-<img src="https://is4-ssl.mzstatic.com/image/thumb/Purple128/v4/c1/37/2a/c1372a8b-7779-cc88-917f-17db385bdae2/source/512x512bb.jpg" alt="CIRPA Logo" title="CIRPA" width="200"/>
+<img src="https://is4-ssl.mzstatic.com/image/thumb/Purple128/v4/c1/37/2a/c1372a8b-7779-cc88-917f-17db385bdae2/source/512x512bb.jpg" alt="CIRPA Logo" title="CIRPA" width="100"/>
 
 ### __Our mission here is to give CIRPA Members an opportunity to learn new skills, see what their IR fellows are using, and give everyone an opportuntiy to contribute their own code & creations for others to see.__
 ---
