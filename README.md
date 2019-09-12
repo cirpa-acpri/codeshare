@@ -1,5 +1,5 @@
 # IR
-### __Our mission here is to give CIRPA Members an opportunity to see what their IR fellows are using, and allow you to contribute your own code & creations for others to see.__
+### __Our mission here is to give CIRPA Members an opportunity to learn new skills, see what their IR fellows are using, and give everyone an opportuntiy to contribute their own code & creations for others to see.__
 ---
 ### Features
 
