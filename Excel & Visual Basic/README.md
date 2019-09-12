@@ -2,7 +2,7 @@ Excel<br>
 ![Excel](https://www.dropbox.com/s/b6v5vj2c3gw3pmx/Excel.png?raw=1)
 =======
 
-Excel is a spreadsheet software developed by Microsoft. It features calculation, graphing tools, pivot tables, and a macro programming language called "Visual Basic for Applications". It largely remains the industry standard for spreadsheets. It obviously is one of the most common ways of working with data, tables and graphs in many small IR offices. If your data is "small" (under 1M rows and ~16k columns), Excel is usually a decent way to interface with it and distribute it to colleagues.
+Excel is a spreadsheet software developed by Microsoft. It features calculation, graphing tools, pivot tables, and a macro programming language called "Visual Basic for Applications". It largely remains the industry standard for spreadsheets, obviously one of the most common ways of working with data, tables and graphs in many small IR offices. If your data is "small" (under 1M rows and ~16k columns), Excel is usually a decent way to interface with it and distribute it to colleagues.
 
 Excel has a variety of intermediate and advanced-level features that are often overlooked, and can be incredibly useful to IR teams in their ad-hoc, stop-gap, and even main-line work.
 
