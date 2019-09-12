@@ -27,6 +27,7 @@ When I was starting off, I found a Script Recorder to be quite helpful. (This ha
 As a jump-start example, here's a script of my top-3 favourite shortcuts. You can [download and give them a look / try here](https://www.dropbox.com/s/wdnjjg313pjneff/Handy%20Shortcuts.ahk?raw=1). 
 
 ## A few examples of what you can do...
+*Typically these shortcuts reside in a persistent script running in the background, waiting for particular input to trigger an event.
 
 1. Run Notepad using WIN+N
 ~~~~
