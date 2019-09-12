@@ -8,9 +8,9 @@ IBM's SPSS Statistics (originally Statistical Package for the Social Sciences) i
 
 ## What's here?
 * **Syntax** - Until we have a need to start sorting code into categories, it can all go into this folder! Upload anything you are using or find useful.
-  * Useful scripts
-  * Interesting discoveries
-  * Your favourite use cases / output
+  * Useful syntax
+  * Example projects
+  * Your favourite outputs, and how to interpret them
 
 **Please ensure all submissions are adequately commented, both with an introduction section at the top, and in-line whenever useful.**<br>
 *Example:*
