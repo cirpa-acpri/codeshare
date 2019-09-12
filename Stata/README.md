@@ -25,7 +25,8 @@ destring  teacherfacultytype, replace   * Make the variable an integer type. Not
 sort teacherfacultytype   * Sort data by variable - required for "by" commands.
 
 by teacherfacultytype: hist teach_avg, freq norm w(1)    
-* For every faculty type, make a histogram, with the scale being the frequency of score. Also insert a normal curve, and make the bin width 1 (bar for every score value, 0-5).
+* For every faculty type, make a histogram, with the scale being the frequency of score. Also insert a normal curve,
+* and make the bin width 1 (bar for every score value, 0-5). The histograms generated this way will be shown in a grid.
 ```
 
 * **Useful links** that we've stumbled across, providing useful information, or showcasing something useful or interesting.
