@@ -37,4 +37,4 @@ You can easily download or work with files by creating your own clone or fork of
 3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
 
 ## Helpful Links
-* UCLA - Institute for Digital Research & Education - SPSS FAQ: How to do basically anything in SPSS, with examples and instructions. https://stats.idre.ucla.edu/spss/faq/
+* UCLA - Institute for Digital Research & Education - SPSS FAQ: How to do basically anything basic in SPSS, with examples and instructions. https://stats.idre.ucla.edu/spss/faq/
