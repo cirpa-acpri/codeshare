@@ -1,5 +1,5 @@
-R<br>		
-<img src="https://www.r-project.org/Rlogo.png" alt="R Logo" title="Multi-coloured scatterplot in STATA" width="100"/>
+SPSS<br>		
+<img src="https://webcms.colostate.edu/ramtech/media/sites/136/2017/02/SPSS-transparent-web-banner.png" alt="SPSS Logo" title="SPSS" width="400"/>
 =======
 
 [**R**](https://www.r-project.org/) is a programming language and free software environment for statistical computing and graphics supported by the R Foundation for Statistical Computing. The R language is widely used among statisticians and data miners for developing statistical software and data analysis. Although R has a command line interface, there are several graphical user interfaces, such as [RStudio](https://www.rstudio.com/), an integrated development environment. 
