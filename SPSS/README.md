@@ -16,12 +16,13 @@ IBM's SPSS Statistics (originally Statistical Package for the Social Sciences) i
 *Example:*
 ```
 * Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca.
-* Demonstration of AUTORECODE, which is useful when you have a variable of just captions, but want to make it into a coded variable.
+* Demonstration of AUTORECODE, which is useful when you have a variable of just captions, 
+* but want to make it into a coded variable.
 
 AUTORECODE varible			* Source
-	/INTO recoded_variable 	* Output
+	/INTO recoded_variable 		* Output
 	/BLANK MISSING			* Optional: Set blanks to missing.
-	/PRINT.					* Optional: Show a coding scheme table.
+	/PRINT.				* Optional: Show a coding scheme table.
 ```
 
 * **Useful links** that we've stumbled across, providing useful information, or showcasing something useful or interesting.
