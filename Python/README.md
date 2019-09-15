@@ -6,6 +6,7 @@ According to [Stack Overflow](https://insights.stackoverflow.com/trends?tags=jav
 
 * [Python.org](https://www.python.org/)
 * [Anaconda](https://www.anaconda.com/) - a good way to install scientific Python on your machine
+* [Python Cheatsheet](https://github.com/BisratYalew/python-cheatsheet)
 
 ## PyCon Canada
 
