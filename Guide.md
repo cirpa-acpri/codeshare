@@ -24,7 +24,7 @@ To download a single file:
 If you go back one page, to where all the folders are listed, you'll notice a big green button on the top-right, labelled "Clone or download". You can use this to download a full copy of the current file repository - either by downloading a ZIP, or opening it in GitHub's desktop client (install required).
 
 ## How to Contribute your Own Creations
-Have something you'd like to feature here or upload? That's awesome. Let's get it up there where people can see it. 
+Have something you'd like to feature here or upload? That's awesome. Let's get it up where people can see it. 
 
 **First**, ensure your code is properly referenced and commented. We recommend you have some sort of header comment space that notes who you are, and how to contact you, as well as a description of what you code or contribution accomplishes.
 *Example:*
