@@ -11,16 +11,16 @@
 ; ========= EXCEL SHORTCUTS ==========
 #IfWinActive, ahk_class XLMAIN
 
-; Paste Values
+; Paste Values: CTRL+SHIFT+V
 ; ---------------------------------------------------------------------------------
 ^+v::Send, {APPSKEY}sv
 
-; Change books (based on mouse wheel)
+; Change books (based on mouse wheel): CTRL+ALT+MouseWheel
 ; ---------------------------------------------------------------------------------
 ^!WheelUp::SendPlay, ^{TAB}
 ^!WheelDown::SendPlay, ^+{TAB}
 
-; Format Painter
+; Format Painter: Middle Mouse Button (for me, it's click the wheel)
 ; ---------------------------------------------------------------------------------
 MButton::
 Send, !h
@@ -28,7 +28,7 @@ Sleep, 25
 Send, fp
 return
 
-; Insert Row
+; Insert Row: SHIFT+Middle Mouse
 ; ---------------------------------------------------------------------------------
 Shift & MButton::
 Send, +{SPACE}
@@ -38,7 +38,7 @@ Sleep, 25
 send, i
 return
 
-; Insert Column
+; Insert Column: ALT+Middle Mouse
 ; ---------------------------------------------------------------------------------
 ALT & MButton::
 Send,^{SPACE}
@@ -48,7 +48,7 @@ Sleep, 35
 Send, i
 return
 
-; Edit (start of) current cell in Excel
+; Edit (start of) current cell in Excel: INSERT
 ; ---------------------------------------------------------------------------------
 Insert::
 MouseGetPos, mtempX, mtempY
