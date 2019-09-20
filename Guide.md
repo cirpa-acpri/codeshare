@@ -3,7 +3,7 @@ You're currently reading a file within a repository of files, sorted into folder
 
 It's collaborative in a few ways.
 1. **You can download and use any code that you can access on GitHub**. In addition to grabbing individual files, you can make your own copy of entire project file systems and use them as you see fit. This is called a "Fork". 
-2. **You can message the authour(s) of the code, and ask them questions.** Each file contains version history and explains how it has changed over time, and who made those changes.
+2. **You can message the authour(s) of the code, and ask them questions.** In addition, each file contains version history and explains how it has changed over time, and who made those changes.
 3. **You can submit your own code or revisions to be posted here.** You are able to edit a copy of the code and submit your version to the authuor(s) for them to consider merging into the original (Master) copy. This merging action is called a "Pull request" - where you request that your "fork" (copy of the original) be "pulled" (integrated) into the main repository.
 
 ## How to Find and Download Code
