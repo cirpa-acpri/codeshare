@@ -10,7 +10,7 @@ It's collaborative in a few ways.
 3. **You can submit your own code or revisions to be posted here.** You are able to edit a copy of the code and submit your version to the authuor(s) for them to consider merging into the original (Master) copy. This merging action is called a "Pull request" - where you request that your "fork" (copy of the original) be "pulled" (integrated) into the main repository.
 
 ## How to Find and Download Code
-Click around into the various folders. Different folders contain different types of files and code based on the platform being referenced. If you're interested in a file, click on it. If that file happens to have machine-readable code (eg. R, Python, AutoHotkey scripts, etc.), the file will preview on the screen.
+Click around into the various folders. Different folders contain different types of files and code based on the platform being referenced. If you're interested in a file, click on it. If that file happens to have text-readable code (eg. R, Python, AutoHotkey scripts, etc.), the file will preview on the screen.
 
 To download a single file:
 1. Click on the file/script you want.
