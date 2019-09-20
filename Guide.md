@@ -36,7 +36,7 @@ a = 2+2
 print(a) # Display output
 ```
 **Second**, send it over to us! You have two options to do this:
-1. **Keep it simple**: Send your creations to Stephen Childs (York University, sechilds@yorku.ca) or Fraser Hay (Conestoga College, fhay@conestogac.on.ca). 
+1. **Keep it simple**: Send your creations to Stephen Childs (York University, sechilds@yorku.ca) or Fraser Hay (Conestoga College, fhay@conestogac.on.ca). We'll get your creations up here as promptly as we can.
 2. **Fork it**: [Create a fork](https://help.github.com/en/articles/fork-a-repo) of this repository and add in your new code to the appropriate place, then create a pull request (with a good description of your additions / changes) to merge them into the master.
 
 ## GitHub Tutorials
