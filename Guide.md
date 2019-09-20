@@ -2,7 +2,7 @@
 
 ## A Simple Guide to This Repository
 ---
-You're currently reading a file within a repository, sorted into folders. We're using **[GitHub](https://github.com/)**, which is a platform for storing and developing code in a collaborative way.
+You're currently reading a file within a repository of files, sorted into folders. We're using **[GitHub](https://github.com/)**, which is a platform for storing and developing code in a collaborative way.
 
 It's collaborative in a few ways.
 1. **You can use any code that you can access on GitHub**, because in addition to downloading individual files, you can make your own copy of things and use them as you see fit. This is called a "Fork". 
