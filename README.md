@@ -20,7 +20,7 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 > Productivity tips, tricks, functional examples and templates for the world's most popular spreadsheet software - the workhorse of virtually all IR offices. 
 * [R](https://github.com/Sopwith/IR/tree/master/R)
 > Work with data, run statistics, explore possibilities and create useful visualizations in this ever-evolving and powerful open-source statistical program. See what people are using it for in the world of IR.
-* Python
+* [Python](Python/)
 > Do basically anything that needs doing on a computer while learning one of the most popular new open-source programming languages out there. Scripts, modules and subroutines that you can use in your travels.
 * [SPSS](https://github.com/Sopwith/IR/tree/master/SPSS)
 > Syntax, examples, and useful tips for using this mainstream juggernaut of a statistical software.
