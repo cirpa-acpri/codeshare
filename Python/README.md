@@ -19,3 +19,4 @@ so there will be plenty of content for IR folks using Python.
 ### Helpful Links / Interesting Ideas
 Bokeh - Interactive Visualizations, with examples: https://docs.bokeh.org/en/latest/docs/gallery.html#gallery
 *Related:* Dashboarding Tools from PyViz: https://pyviz.org/dashboarding/index.html
+*[Recent Anaconda Webinar about Panel]*(https://event.on24.com/interface/registration/autoreg/index.html?eventid=2044361&sessionid=1&key=9B446BD2ECD02D63B2CD6D0075D52A6C)
