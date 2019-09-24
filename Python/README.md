@@ -14,4 +14,6 @@ According to [Stack Overflow](https://insights.stackoverflow.com/trends?tags=jav
 and it will feature a **PyData** track,
 so there will be plenty of content for IR folks using Python.
 
-
+### Helpful Links / Interesting Ideas
+Bokeh - Interactive Visualizations, with examples: https://docs.bokeh.org/en/latest/docs/gallery.html#gallery
+*Related:* Dashboarding Tools from PyViz: https://pyviz.org/dashboarding/index.html
