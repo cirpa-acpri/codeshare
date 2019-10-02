@@ -3,9 +3,8 @@
 
 This is a place where CIRPA members and IR professionals can learn new skills, see what their IR fellows are using, contribute their own code & creations for others to see.
 
----
-### New here, or to GitHub? Go ahead and [read our introductory guide](https://github.com/Sopwith/IR/blob/master/Guide.md) about how to get started using what we have here, and contributing your own knowledge and creations!
----
+***New here, or to GitHub? Go ahead and [read our introductory guide](https://github.com/Sopwith/IR/blob/master/Guide.md) about how to get started using what we have here, and contributing your own knowledge and creations!***
+
 ### Features
 
 * [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery)
