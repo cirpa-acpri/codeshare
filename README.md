@@ -5,13 +5,12 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 
 ***New here, or to GitHub? Go ahead and [read our introductory guide](https://github.com/Sopwith/IR/blob/master/Guide.md) about how to get started using what we have here, and contributing your own knowledge and creations!***
 
-### Features
+## Features
 
 * [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery)
 > Browse a gallery of data visualizations for a variety of platforms with code & instructions on how to create them yourself using your own data.
 
----
-### Code Areas
+## Code Areas
 
 * [AutoHotkey](https://github.com/Sopwith/IR/tree/master/AutoHotkey)
 > Create shortcuts, macros, scripts and automate tasks in this useful tool for automation in Windows. 
