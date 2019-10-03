@@ -1,6 +1,4 @@
-R<br>		
-<img src="https://www.r-project.org/Rlogo.png" alt="R Logo" title="R" width="100"/>
-=======
+# <img src="https://www.r-project.org/Rlogo.png" alt="R Logo" title="R" width="100"/>
 
 [**R**](https://www.r-project.org/) is a programming language and free software environment for statistical computing and graphics supported by the R Foundation for Statistical Computing. The R language is widely used among statisticians and data miners for developing statistical software and data analysis. It includes a system to disseminate user-written packages that enables its features to continuously grow. Although R has a command line interface, there are several graphical user interfaces, such as [RStudio](https://www.rstudio.com/), an integrated development environment. 
 
