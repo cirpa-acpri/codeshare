@@ -36,3 +36,6 @@ There are many ways to go about starting and learning R. Google will let you div
 Our preferred way to jump in for beginners is to simply [download and install R](http://cran.utstat.utoronto.ca/) itself, then [RStudio](https://www.rstudio.com/products/rstudio/download/#download) (or a similar integrated development environment (IDE)). Launch RStudio, and you're ready to start playing with the code!
 
 ## Helpful Links
+There are hundreds of places to learn about R; here are just a few:
+* R Quick Start: https://www.statmethods.net/r-tutorial/index.html
+* R for Beginners, PDF: https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf
