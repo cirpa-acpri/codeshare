@@ -1,6 +1,4 @@
-SPSS<br>		
-<img src="https://webcms.colostate.edu/ramtech/media/sites/136/2017/02/SPSS-transparent-web-banner.png" alt="SPSS Logo" title="SPSS" width="400"/>
-=======
+# <img src="https://webcms.colostate.edu/ramtech/media/sites/136/2017/02/SPSS-transparent-web-banner.png" alt="SPSS Logo" title="SPSS" width="350"/>
 
 IBM's SPSS Statistics (originally Statistical Package for the Social Sciences) is a software package used for statistical analysis. It features a default suite of statistical capabilities, and features many optional proprietary add-ons for a myriad of niches across business, science, social science, health, and beyond. Something of a juggernaut, it is one of the most powerful, biggest-business and longest-running statistical packages on the market, as well as one of the most expensive. It's a common application for statistical analysis in many older IR offices.
 

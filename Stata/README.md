@@ -1,6 +1,4 @@
-Stata<br>		
-<img src="https://www.stata.com/includes/images/stata-logo-blue.svg" alt="Stata Logo" title="Stata" width="250"/>
-=======
+# <img src="https://www.stata.com/includes/images/stata-logo-blue.svg" alt="Stata Logo" title="Stata" width="250"/>
 
 Stata is a general-purpose statistical software package. Its users span across many fields, and it provides all of the key features for statistical analysis and programmatic data science, with some additions not often found elsewhere. As in some other packages (like R), it is primarily a command-line interface, and also has a system to disseminate user-written packages and subroutines that enables its features to continuously grow. Although it is not free software, licensing is incredibly affordable (compared to SPSS).
 
