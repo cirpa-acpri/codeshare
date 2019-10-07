@@ -19,16 +19,9 @@ so there will be plenty of content for IR folks using Python.
   * Useful scripts
   * Interesting discoveries
   * Your favourite use cases / output
+  
+[See our Guide](https://github.com/Sopwith/IR/blob/master/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
 
-**Please ensure all submissions are adequately commented, both with an introduction section at the top, and in-line whenever useful. Also please ensure your code identifies any required packages or dependencies.**<br>
-*Example:*
-```
-# Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca
-# This code calculates and displays the sum of 2+2.
-
-a = 2+2
-print(a) # Display output
-```
 ## How to Download a file
 You can easily download or work with files by creating your own clone or fork of parts of the CIRPA repository. But if you just want to download a single file:
 1. Click on the file/script you want.
