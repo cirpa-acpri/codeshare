@@ -10,18 +10,7 @@ IBM's SPSS Statistics (originally Statistical Package for the Social Sciences) i
   * Example projects
   * Your favourite outputs, and how to interpret them
 
-**Please ensure all submissions are adequately commented, both with an introduction section at the top, and in-line whenever useful.**<br>
-*Example:*
-```
-* Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca.
-* Demonstration of AUTORECODE, which is useful when you have a variable of just captions, 
-* but want to make it into a coded variable.
-
-AUTORECODE varible			* Source
-	/INTO recoded_variable 		* Output
-	/BLANK MISSING			* Optional: Set blanks to missing.
-	/PRINT.				* Optional: Show a coding scheme table.
-```
+[See our Guide](https://github.com/Sopwith/IR/blob/master/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
 
 * **Useful links** that we've stumbled across, providing useful information, or showcasing something useful or interesting.
 
