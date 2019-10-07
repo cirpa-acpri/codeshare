@@ -24,14 +24,26 @@ If you go back one page, to where all the folders are listed, you'll notice a bi
 Have something you'd like to feature here or upload? That's awesome. Let's get it up where people can see it. 
 
 **First**, ensure your code is properly referenced and commented. We recommend you have some sort of header comment space that notes who you are, and how to contact you, as well as a description of what you code or contribution accomplishes. In-line comments and commentary are also encouraged - help people understand what's going on! Also please ensure your code identifies somewhere any required packages or dependencies, if applicable.
-*Example:*
+*Examples:*
 ```
 # Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca
-# This code calculates and displays the sum of 2+2.
+# R/Python: This code calculates and displays the sum of 2+2.
 
 a = 2+2
 print(a) # Display output
 ```
+```
+* Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca
+* SPSS: Demonstration of AUTORECODE, which is useful when you have a variable of just captions, 
+* but want to make it into a coded variable.
+
+AUTORECODE varible			* Source
+	/INTO recoded_variable 		* Output
+	/BLANK MISSING			* Optional: Set blanks to missing.
+	/PRINT.				* Optional: Show a coding scheme table.
+```
+
+
 **Second**, send it over to us! You have two options to do this:
 1. **Keep it simple**: Send your creations to Stephen Childs (York University, sechilds@yorku.ca) or Fraser Hay (Conestoga College, fhay@conestogac.on.ca). We'll get your creations up here as promptly as we can.
 2. **Fork it**: [Create a fork](https://help.github.com/en/articles/fork-a-repo) (or branch) of this repository and add in your new code to the appropriate place, then create a [pull request](https://help.github.com/en/articles/about-pull-requests) (with a good description of your additions / changes) to merge them into the master. We'll review it and work with you to get things up and running.
