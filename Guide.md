@@ -23,7 +23,7 @@ If you go back one page, to where all the folders are listed, you'll notice a bi
 ## How to Contribute your Own Creations
 Have something you'd like to feature here or upload? That's awesome. Let's get it up where people can see it. 
 
-**First**, ensure your code is properly referenced and commented. We recommend you have some sort of header comment space that notes who you are, and how to contact you, as well as a description of what you code or contribution accomplishes. Also please ensure your code identifies somewhere any required packages or dependencies, if applicable.
+**First**, ensure your code is properly referenced and commented. We recommend you have some sort of header comment space that notes who you are, and how to contact you, as well as a description of what you code or contribution accomplishes. In-line comments and commentary are also encouraged - help people understand what's going on! Also please ensure your code identifies somewhere any required packages or dependencies, if applicable.
 *Example:*
 ```
 # Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay@conestogac.on.ca
