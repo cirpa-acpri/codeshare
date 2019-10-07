@@ -26,7 +26,7 @@ These are things you should be aware of that Excel can do; and if don't know how
 * Slicers: point-and-click interactive filters for pivot-tables that are very easy to set-up.
 * Pivot Charts: hook up your pivot tables to charts, and watch them change on command.
 * Connecting to databases: Excel can import tables and views from SQL and many other places
-* Hosting Excel documents on SharePoint: You can embed Excel documents and parts onto SharePoint for people to interact with. (Read-only)
+* Hosting Excel documents on SharePoint: You can embed Excel documents and parts onto SharePoint for people to interact with.
 * VBA Macros: Create yourself some shortcuts and speed up your routine work.
 * VBA Macros - Reporting Loops: Have a reporting template but need a document exported for hundreds of different unique cases / entites? Use VBA to run through the entire list in a few minutes, spitting out a correctly formatted report for each.
 
