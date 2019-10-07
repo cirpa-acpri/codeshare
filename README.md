@@ -37,7 +37,7 @@ You can easily download or work with files by creating your own clone or fork of
 
 ---
 ### Want to talk?
-Have a question about what's here? If your question is about a submission, you can email the authour. If not, contact Stephen Childs (York University, sechilds@yorku.ca) or Fraser Hay (Conestoga College, fhay@conestogac.on.ca).
+Have a question about what's here? If your question is about a submission, you can email the authour. If not, contact [Stephen Childs](mailto:sechilds@yorku.ca) (York University) or [Fraser Hay](mailto:fhay@conestogac.on.ca) (Conestoga College).
 
 Want to pose an idea or discuss something about coding or IR in general? The [CIRPA Member365 Portal](https://cirpa.member365.com/sharingnetwork/login?redirect=https%3A%2F%2Fcirpa.member365.com%2Fsharingnetwork%2Fdashboard) is a great place to do it. Login and post in the discussions! (Remember, Limited Membership is free!)
 
