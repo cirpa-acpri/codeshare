@@ -44,8 +44,10 @@ for table_row in range(2, sheet.max_row + 1): # For every row in the file...
 import shutil # https://docs.python.org/3/library/shutil.html
 
 for x in table:  # For every item in the "table" array...
-    temp = (r"C:\Users\fhay\Desktop\New folder\"") # Playing with the string, I had trouble getting it 
-    temp = temp[:-1] # working the way I needed. This is basically me encoding an extra quote and then removing it.
-    temp = temp + x["School"] # Add "School" to the destination path of the file.
+    # Next two lines: Playing with the string, I had trouble getting it working the way I needed. This is basically me encoding an extra quote and then removing it.
+    temp = (r"C:\Users\fhay\Desktop\New folder\"")
+    temp = temp[:-1]
+    temp = temp + x["School"] # Add "School" to the destination path of the file. Eg. "C:\Users\fhay\Desktop\New folder\" becomes "C:\Users\fhay\Desktop\New folder\Engineering"
     shutil.copy(x["Path"], temp) # Copy the source file to the destination path!
     
+# Finis
