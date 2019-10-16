@@ -5,6 +5,9 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 
 ***New here, or to GitHub? Go ahead and [read our introductory guide](https://github.com/Sopwith/IR/blob/master/Guide.md) about how to get started using what we have here, and contributing your own knowledge and creations!***
 
+## What's new?
+* [10/16/2019] - Updated site licensing model.
+
 ## Features
 
 * [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery)
