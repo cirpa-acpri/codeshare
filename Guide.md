@@ -24,6 +24,7 @@ If you go back one page, to where all the folders are listed, you'll notice a bi
 Have something you'd like to feature here or upload? That's awesome. Let's get it up where people can see it. 
 
 **First**, ensure your code is properly referenced and commented. We recommend you have some sort of header comment space that notes who you are, and how to contact you, as well as a description of what you code or contribution accomplishes. In-line comments and commentary are also encouraged - help people understand what's going on! Also please ensure your code identifies somewhere any required packages or dependencies, if applicable.
+
 *Examples:*
 ```
 # Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay{at}conestogac.on.ca
