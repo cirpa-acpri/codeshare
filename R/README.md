@@ -29,4 +29,5 @@ Our preferred way to jump in for beginners is to simply [download and install R]
 ## Helpful Links
 There are hundreds of places to learn about R; here are just a few:
 * R Quick Start: https://www.statmethods.net/r-tutorial/index.html
+* R for Data Science, online guide: https://r4ds.had.co.nz/index.html
 * R for Beginners, PDF: https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf
