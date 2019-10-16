@@ -43,4 +43,4 @@ Want to pose an idea or discuss something about coding or IR in general? The [CI
 
 ---
 #### Licensing
-Please note that all materials that are posted to this repository are considered public domain. Please consider this fact before uploading or sharing any new code.
+Please note that all materials that are posted to this repository are considered under the [MIT License](https://github.com/Sopwith/IR/blob/master/LICENSE.md). Please consider this fact before uploading or sharing any new code.
