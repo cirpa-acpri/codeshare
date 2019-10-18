@@ -45,7 +45,7 @@ AUTORECODE varible			* Source
 ```
 ```
 * Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay{at}conestogac.on.ca.
-* Side-by-side histogram distributions of a score, for various groups. In this case, teaching scores by FT / PT faculty.
+* Stata: Side-by-side histogram distributions of a score, for various groups. In this case, teaching scores by FT / PT faculty.
 
 insheet using "S:\Institutional_Research\SAT Summary Dataset.csv", comma clear  * Import CSV dataset.
 replace teacherfacultytype = "1" if teacherfacultytype == "FT"   * Some data cleaning.
