@@ -5,6 +5,6 @@
 *.
 
 AUTORECODE varible				* Source.
-	/INTO recoded_variable 		* Output.
+	/INTO recoded_variable 			* Output.
 	/BLANK MISSING				* Optional: Set blanks to missing.
-	/PRINT.						* Optional: Show a coding scheme table.
+	/PRINT.					* Optional: Show a coding scheme table.
