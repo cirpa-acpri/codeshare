@@ -30,7 +30,7 @@ You can easily download or work with files by creating your own clone or fork of
 ![Raw button](https://www.dropbox.com/s/fyt1qz0qeqjn0vf/GitHub-RawButton.png?raw=1)
 
 3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
-### Helpful Links / Interesting Ideas
+## Helpful Links / Interesting Ideas
 * [Automate the Boring Stuff with Python](https://automatetheboringstuff.com/): A great practical guide to learning Python with small examples and use cases.
 * Bokeh - Interactive Visualizations, with examples: https://docs.bokeh.org/en/latest/docs/gallery.html#gallery<br>
 *Related:* Dashboarding Tools from PyViz: https://pyviz.org/dashboarding/index.html<br>
