@@ -40,11 +40,11 @@ You can easily download or work with files by creating your own clone or fork of
 3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
 
 ---
-## Want to talk?
+### Want to talk?
 Have a question about what's here? If your question is about a submission, you can email the authour. If not, contact [Stephen Childs](mailto:sechilds@yorku.ca) (York University) or [Fraser Hay](mailto:fhay@conestogac.on.ca) (Conestoga College).
 
 Want to pose an idea or discuss something about coding or IR in general? The [CIRPA Member365 Discussion Forums](https://cirpa.member365.com/sharingnetwork/discussion/viewAllDiscussions/) is a great place to do it. Login and make a post! (Remember, Limited Membership is free!)
 
 ---
-## Licensing
+### Licensing
 Please note that all materials that are posted to this repository are considered under the [MIT License](https://github.com/Sopwith/IR/blob/master/LICENSE.md). Please consider this fact before uploading or sharing any new code.
