@@ -1,0 +1,11 @@
+' * Converting Dates from Blue *
+' Fraser Hay - Conestoga College (Kitchener ON) - fhay@conestogac.on.ca
+' For those of us who work with eXplorance Blue, and the useless way their reporting exports format dates.
+' Highlight the dates you don't like, run this little thing, and enjoy machine-readable dates in Excel.
+
+Sub ConvertDates()
+    Dim v As Range
+    For Each v In Selection
+        v.Value = CDate(v.Text)
+    Next v
+End Sub
