@@ -35,3 +35,4 @@ You can easily download or work with files by creating your own clone or fork of
 * Bokeh - Interactive Visualizations, with examples: https://docs.bokeh.org/en/latest/docs/gallery.html#gallery<br>
 *Related:* Dashboarding Tools from PyViz: https://pyviz.org/dashboarding/index.html<br>
 * *[Recent Anaconda Webinar about Panel](https://event.on24.com/interface/registration/autoreg/index.html?eventid=2044361&sessionid=1&key=9B446BD2ECD02D63B2CD6D0075D52A6C)*
+* Use Python to conduct transactions (make [requests](https://realpython.com/python-requests/)) between web systems using APIs. (Eg. [Qualtrics](https://api.qualtrics.com/))
