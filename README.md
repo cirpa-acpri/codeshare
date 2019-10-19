@@ -11,14 +11,14 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 
 ## Features
 
-* [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery)
+* [Visualization Gallery](/Visualization%20Gallery)
 > Browse a gallery of data visualizations for a variety of platforms with code & instructions on how to create them yourself using your own data.
 
 ## Code Areas
 
-* [AutoHotkey](https://github.com/Sopwith/IR/tree/master/AutoHotkey)
+* [AutoHotkey](/AutoHotkey)
 > Create shortcuts, macros, scripts and automate tasks in this useful tool for automation in Windows. 
-* [Excel & VisualBasic](https://github.com/Sopwith/IR/tree/master/Excel%20%26%20Visual%20Basic)
+* [Excel & VisualBasic](/Excel%20%26%20Visual%20Basic)
 > Productivity tips, tricks, functional examples and templates for the world's most popular spreadsheet software - the workhorse of virtually all IR offices. 
 * [R](https://github.com/Sopwith/IR/tree/master/R)
 > Work with data, run statistics, explore possibilities and create useful visualizations in this ever-evolving and powerful open-source statistical program. See what people are using it for in the world of IR.
