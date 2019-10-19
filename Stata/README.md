@@ -2,7 +2,7 @@
 
 Stata is a general-purpose statistical software package. Its users span across many fields, and it provides all of the key features for statistical analysis and programmatic data science, with some additions not often found elsewhere. As in some other packages (like R), it is primarily a command-line interface, and also has a system to disseminate user-written packages and subroutines that enables its features to continuously grow. Although it is not free software, licensing is incredibly affordable (compared to SPSS).
 
-**Be a trend-setter!** - Remember to check out the [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery) and submit your own creations for others to see and copycat.
+**Be a trend-setter!** - Remember to check out the [Visualization Gallery](Visualization%20Gallery/) and submit your own creations for others to see and copycat.
 
 ## What's here?
 * **Syntax** - Until we have a need to start sorting code into categories, it can all go into this folder! Upload anything you are using or find useful.
@@ -10,7 +10,7 @@ Stata is a general-purpose statistical software package. Its users span across m
   * Interesting discoveries
   * Your favourite use cases / output
 
-[See our Guide](https://github.com/Sopwith/IR/blob/master/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
+[See our Guide](Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
 
 * **Useful links** that we've stumbled across, providing useful information, or showcasing something useful or interesting.
 

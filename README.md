@@ -11,22 +11,22 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 
 ## Features
 
-* [Visualization Gallery](/Visualization%20Gallery)
+* [Visualization Gallery](Visualization%20Gallery/)
 > Browse a gallery of data visualizations for a variety of platforms with code & instructions on how to create them yourself using your own data.
 
 ## Code Areas
 
-* [AutoHotkey](/AutoHotkey)
+* [AutoHotkey](AutoHotkey/)
 > Create shortcuts, macros, scripts and automate tasks in this useful tool for automation in Windows. 
-* [Excel & VisualBasic](/Excel%20%26%20Visual%20Basic)
+* [Excel & VisualBasic](Excel%20%26%20Visual%20Basic/)
 > Productivity tips, tricks, functional examples and templates for the world's most popular spreadsheet software - the workhorse of virtually all IR offices. 
-* [R](https://github.com/Sopwith/IR/tree/master/R)
+* [R](R/)
 > Work with data, run statistics, explore possibilities and create useful visualizations in this ever-evolving and powerful open-source statistical program. See what people are using it for in the world of IR.
 * [Python](Python/)
 > Do basically anything that needs doing on a computer while learning one of the most popular new open-source programming languages out there. Scripts, modules and subroutines that you can use in your travels.
-* [SPSS](https://github.com/Sopwith/IR/tree/master/SPSS)
+* [SPSS](SPSS/)
 > Syntax, examples, and useful tips for using this mainstream juggernaut of a statistical software.
-* [Stata](https://github.com/Sopwith/IR/tree/master/Stata)
+* [Stata](Stata/)
 > Common helpful use cases and code examples for this affordable yet powerful statistical package.
 
 ---

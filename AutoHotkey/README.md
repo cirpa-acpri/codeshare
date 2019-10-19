@@ -16,7 +16,7 @@ Code is separated into two types, which may overlap at times. They are all meant
 4. If you have AutoHotkey installed, you can just double-click the script to run / load it. Or you can edit the .AHK file in any text editor.
 
 ### Upload your own creations
-[See our Guide](https://github.com/Sopwith/IR/blob/master/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
+[See our Guide](../Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
 
 ## Introduction for Beginners: Starting Off
 Once you install AutoHotkey, the program operates using scripts, which are just text files with code, typically with an .AHK extension. Remember you can edit .AHK files in any text editor, like notepad. Once you create an AHK script, you can run/load it as if it was a program by double-clicking it, or running it with AutoHotkey. Scripts can be closed by finding the AutoHotkey tray icon for the script and closing it, or going to the Task Manager and closing the AutoHotkey process.
