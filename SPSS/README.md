@@ -26,7 +26,7 @@ You can easily download or work with files by creating your own clone or fork of
 ## Tips & Tricks
 As submitted by members.
 * Remember that when you run a crosstab, you can add many layers, then edit the output table, enabling *pivoting trays*, to move around rows, columns, and generally completely reconfigure the layout/structure of the output. Very useful to reorganize things into the format you need them to be - particularly when your data is complex.
-  * You can use Excel to "fill down" values with these tables, if it helps.
+  * You can [use Excel to "fill down" values](https://github.com/Sopwith/IR/tree/master/Excel%20%26%20Visual%20Basic#tips-and-tricks) with these tables, if it helps.
 
 ## Helpful Links
 * UCLA - Institute for Digital Research & Education - SPSS FAQ: How to do basically anything basic in SPSS, with examples and instructions. https://stats.idre.ucla.edu/spss/faq/
