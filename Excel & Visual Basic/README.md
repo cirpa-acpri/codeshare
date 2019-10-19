@@ -36,3 +36,12 @@ These are things you should be aware of that Excel can do; and if don't know how
 Links to resources as submitted by members:
 * A basic overview of VLOOKUP, one of the more useful commands: [https://support.office.com/en-us/article/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1](https://support.office.com/en-us/article/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1)
 * Example of INDEX and MATCH: [https://www.deskbright.com/excel/using-index-match/](https://www.deskbright.com/excel/using-index-match/)
+
+## Tips and Tricks
+Send us your formulas or small life-hacks and we'll post them here.
+* *Determining the age difference (in years) between two points in time.* 
+  Assumes A1 is a functional date value. If it's not, you may have to try converting it, possibly by encapsulating with DATEVALUE(). The DATE() term is supposed to be the *later* date you're gauging against. "y" means return number of years.
+  
+  =DATEDIF(A1,DATE(2019,10,21),"y")
+* You can use Excel to "fill down" values with big, empty tables - such as those from mulit-level SPSS cross-tabs, or with cube / report outputs from some COGNOS systems. Just copy-paste the big table, unmerge any cells (if applicable), then select all the table's row labels / levels (not the values) > F5 (Go to) > Special > Blanks > OK, and then click on the formula bar, and make the selected cell "={cell above it}", then CTRL+ENTER (fill contents to selection). Paste everything as values, and bam, you have a table full of repeated-lables. Great for pivot-tables.
+       <img src="https://www.dropbox.com/s/6gjhzvqnr1yflab/ExcelFillDownExample.jpg?raw=1" alt="Excel Fill Down Example" title="Excel Fill Down Example" width="750"/>

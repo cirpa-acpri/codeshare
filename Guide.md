@@ -3,7 +3,7 @@ You're currently reading a file within a repository of files, sorted into folder
 
 It's collaborative in a few ways.
 1. **You can download and use any code that you can access on GitHub**. In addition to grabbing individual files, you can make your own copy of entire project file systems and use them as you see fit. This is called a "Fork". 
-2. **You can message the authour(s) of the code, and ask them questions.** In addition, each file contains version history and explains how it has changed over time, and who made those changes.
+2. **You can message the authour(s) of the code, and ask them questions.** Most code has the authour's contact info included. In addition, each file has version history that explains how it has changed over time (if appliable) and who made those changes. You can also use the "[Issues](https://guides.github.com/features/issues/)" feature at the top of each page to ask a question or raise concerns. Finally, remember you can always post a message on the [CIRPA Member365 discussion forums](https://cirpa.member365.com/sharingnetwork/discussion/viewAllDiscussions/).
 3. **You can submit your own code or revisions to be posted here.** You are able to edit a copy of the code and submit your version to the authuor(s) for them to consider merging into the original (Master) copy. This merging action is called a "Pull request": where you request that your "fork" (copy of the original) be "pulled" (integrated) into the main repository.
 
 ## How to Find and Download Code
@@ -24,7 +24,8 @@ If you go back one page, to where all the folders are listed, you'll notice a bi
 Have something you'd like to feature here or upload? That's awesome. Let's get it up where people can see it. 
 
 **First**, ensure your code is properly referenced and commented. We recommend you have some sort of header comment space that notes who you are, and how to contact you, as well as a description of what you code or contribution accomplishes. In-line comments and commentary are also encouraged - help people understand what's going on! Also please ensure your code identifies somewhere any required packages or dependencies, if applicable.
-*Examples:*
+
+### *Examples:*
 ```
 # Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay{at}conestogac.on.ca
 # R/Python: This code calculates and displays the sum of 2+2.
@@ -44,7 +45,7 @@ AUTORECODE varible			* Source
 ```
 ```
 * Fraser Hay, Conestoga College (Kitchener, Ontario) - fhay{at}conestogac.on.ca.
-* Side-by-side histogram distributions of a score, for various groups. In this case, teaching scores by FT / PT faculty.
+* Stata: Side-by-side histogram distributions of a score, for various groups. In this case, teaching scores by FT / PT faculty.
 
 insheet using "S:\Institutional_Research\SAT Summary Dataset.csv", comma clear  * Import CSV dataset.
 replace teacherfacultytype = "1" if teacherfacultytype == "FT"   * Some data cleaning.
@@ -61,7 +62,7 @@ by teacherfacultytype: hist teach_avg, freq norm w(1)
 1. **Keep it simple**: Send your creations to [Stephen Childs](mailto:sechilds@yorku.ca) (York University) or [Fraser Hay](mailto:fhay@conestogac.on.ca) (Conestoga College). We'll get your creations up here as promptly as we can.
 2. **Fork it**: [Create a fork](https://help.github.com/en/articles/fork-a-repo) (or branch) of this repository and add in your new code to the appropriate place, then create a [pull request](https://help.github.com/en/articles/about-pull-requests) (with a good description of your additions / changes) to merge them into the master. We'll review it and work with you to get things up and running.
 
-****Please note*** *that all materials that are posted to this repository are considered considered under the [MIT License](https://github.com/Sopwith/IR/blob/master/LICENSE.md). Please consider this fact before uploading or sharing any new code.*
+****Please note*** *that all materials that are posted to this repository are considered considered under the [MIT License](https://github.com/Sopwith/IR/blob/master/LICENSE.md). Please consider this fact, and your ownership of the code, before uploading or sharing any new code.*
 
 ## GitHub Tutorials
 For more information about GitHub and related goodness, start here:

@@ -6,7 +6,8 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 ***New here, or to GitHub? Go ahead and [read our introductory guide](https://github.com/Sopwith/IR/blob/master/Guide.md) about how to get started using what we have here, and contributing your own knowledge and creations!***
 
 ## What's new?
-* [10/16/2019] - Updated site licensing model.
+* *[10/16/2019] - Updated site licensing model.*
+* *[10/18/2019] - A few more examples. Bear with us. Also, start sending us your code!*
 
 ## Features
 
@@ -42,8 +43,8 @@ You can easily download or work with files by creating your own clone or fork of
 ### Want to talk?
 Have a question about what's here? If your question is about a submission, you can email the authour. If not, contact [Stephen Childs](mailto:sechilds@yorku.ca) (York University) or [Fraser Hay](mailto:fhay@conestogac.on.ca) (Conestoga College).
 
-Want to pose an idea or discuss something about coding or IR in general? The [CIRPA Member365 Portal](https://cirpa.member365.com/sharingnetwork/login?redirect=https%3A%2F%2Fcirpa.member365.com%2Fsharingnetwork%2Fdashboard) is a great place to do it. Login and post in the discussions! (Remember, Limited Membership is free!)
+Want to pose an idea or discuss something about coding or IR in general? The [CIRPA Member365 Discussion Forums](https://cirpa.member365.com/sharingnetwork/discussion/viewAllDiscussions/) is a great place to do it. Login and make a post! (Remember, Limited Membership is free!)
 
 ---
-#### Licensing
+### Licensing
 Please note that all materials that are posted to this repository are considered under the [MIT License](https://github.com/Sopwith/IR/blob/master/LICENSE.md). Please consider this fact before uploading or sharing any new code.
