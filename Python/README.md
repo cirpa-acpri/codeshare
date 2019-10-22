@@ -13,7 +13,7 @@ According to [Stack Overflow](https://insights.stackoverflow.com/trends?tags=jav
   * Your favourite use cases / output
 * Helpful links and use case ideas
   
-[See our Guide](https://github.com/Sopwith/IR/blob/master/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
+[See our Guide](/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
 
 ## How to Download a file
 You can easily download or work with files by creating your own clone or fork of parts of the CIRPA repository. But if you just want to download a single file:
