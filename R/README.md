@@ -10,7 +10,7 @@
   * Interesting discoveries
   * Your favourite use cases / output
 
-[See our Guide](Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
+[See our Guide](/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
 
 ## How to Download a file
 You can easily download or work with files by creating your own clone or fork of parts of the CIRPA repository. But if you just want to download a single file:
