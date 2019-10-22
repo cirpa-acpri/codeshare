@@ -4,9 +4,9 @@ Excel is a spreadsheet software developed by Microsoft. It features calculation,
 
 Excel has a variety of intermediate and advanced-level features that are often overlooked, and can be incredibly useful to IR teams in their ad-hoc, stop-gap, and even main-line work.
 
-**Be a trend-setter!** - Remember to check out the [Visualization Gallery](https://github.com/Sopwith/IR/tree/master/Visualization%20Gallery) and submit your own creations for others to see and copycat.
+**Be a trend-setter!** - Remember to check out the [Visualization Gallery](/Visualization%20Gallery) and submit your own creations for others to see and copycat.
 
-[See our Guide](https://github.com/Sopwith/IR/blob/master/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
+[See our Guide](/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
 
 ## What's here
 We currently have the following categories of things on-offer here:
