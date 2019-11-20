@@ -30,14 +30,10 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 > Common helpful use cases and code examples for this affordable yet powerful statistical package.
 
 ---
-### How to Download a file
+## How to Download a file
 You can easily download or work with files by creating your own clone or fork of parts of the CIRPA repository. But if you just want to download a single file:
-1. Click on the file/script you want.
-2. Right-click the "Raw" button on the top of the file's text box interface.
-
-![Raw button](https://www.dropbox.com/s/fyt1qz0qeqjn0vf/GitHub-RawButton.png?raw=1)
-
-3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
+1. Right-click on the file/script you want.
+2. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
 
 ---
 ### Want to talk?
