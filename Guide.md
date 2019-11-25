@@ -10,12 +10,8 @@ It's collaborative in a few ways.
 Click around into the various folders. Different folders contain different types of files and code based on the platform being referenced. If you're interested in a file, click on it. If that file happens to have text-readable code (eg. R, Python, AutoHotkey scripts, etc.), the file will preview on the screen.
 
 To download a single file:
-1. Click on the file/script you want.
-2. Right-click the "Raw" button on the top of the file's text box interface.
-
-![Raw button](https://www.dropbox.com/s/fyt1qz0qeqjn0vf/GitHub-RawButton.png?raw=1)
-
-3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
+1. Right-click on the file/script you want.
+2. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
 
 ## How to Make a Local Copy of this Repository
 If you go back one page, to where all the folders are listed, you'll notice a big green button on the top-right, labelled "Clone or download". You can use this to download a full copy of the current file repository - either by downloading a ZIP, or opening it in GitHub's desktop client (install required).
