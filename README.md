@@ -8,6 +8,7 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 ## What's new?
 * *[10/16/2019] - Updated site licensing model.*
 * *[10/18/2019] - A few more examples. Bear with us. Also, start sending us your code!*
+* *[11/25/2019] - Added R example in preparation for promotional webinar.*
 
 ## Features
 
