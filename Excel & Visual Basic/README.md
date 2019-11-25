@@ -15,8 +15,12 @@ We currently have the following categories of things on-offer here:
 
 ## How to Download a file
 You can easily download or work with files by creating your own clone or fork of parts of the CIRPA repository. But if you just want to download a single file:
-1. Right-click on the file/script you want.
-2. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
+1. Click on the file/script you want.
+2. Right-click the "Raw" button on the top of the file's text box interface.
+
+![Raw button](https://www.dropbox.com/s/fyt1qz0qeqjn0vf/GitHub-RawButton.png?raw=1)
+
+3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
 
 ## Important Concepts
 These are things you should be aware of that Excel can do; and if don't know how to do them, should probably learn!
