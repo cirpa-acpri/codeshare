@@ -14,8 +14,12 @@
 
 ## How to Download a file
 You can easily download or work with files by creating your own clone or fork of parts of the CIRPA repository. But if you just want to download a single file:
-1. Right-click on the file/script you want.
-2. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
+1. Click on the file/script you want.
+2. Right-click the "Raw" button on the top of the file's text box interface.
+
+![Raw button](https://www.dropbox.com/s/fyt1qz0qeqjn0vf/GitHub-RawButton.png?raw=1)
+
+3. Click "Save link as..." (or equivalent in your browser) to save the file/script and use it.
 
 ## Getting started in R
 There are many ways to go about starting and learning R. Google will let you dive into many of these. 
