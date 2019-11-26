@@ -9,7 +9,6 @@ Code is separated into two types, which may overlap at times. They are all meant
 * **Shortcuts** are where we put fun hotkeys, subroutines, and time-saving measures that are aimed at accomplishing a small and/or useful task.
 * **Functions** are where we put code building blocks for people to use, to save time inside their own scripts.
 
-### How to Download and use a script
 ## How to Download a file
 You can easily download or work with files by creating your own clone or fork of parts of the CIRPA repository. But if you just want to download a single file:
 1. Click on the file/script you want.
