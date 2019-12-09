@@ -9,6 +9,7 @@
   * Useful scripts
   * Interesting discoveries
   * Your favourite use cases / output
+* **Packages** - Links to code repositories or packages made or maintained by fellow IR professionals. See the bottom of this document.
 
 [See our Guide](/Guide.md#how-to-contribute-your-own-creations) for tips on uploading your own submissions / content. 
 
@@ -31,3 +32,8 @@ There are hundreds of places to learn about R; here are just a few:
 * R Quick Start: https://www.statmethods.net/r-tutorial/index.html
 * R for Data Science, online guide: https://r4ds.had.co.nz/index.html
 * R for Beginners, PDF: https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf
+
+## Packages by IR Users
+* [xmrr](https://github.com/Zanidean/xmrr) is used to generate control charts. 
+* [air](https://github.com/Zanidean/air) is used to pull cube data. (This is Alberta specific, but the code could be re-tooled to work with any cube.)
+* [autumn](https://github.com/Zanidean/autumn) is a packaged approach to a certain kind of very powerful analysis. 
