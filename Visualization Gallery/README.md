@@ -20,7 +20,11 @@ Have you made some pretty cool graphs and charts, and want to share them with yo
     <th>Details</th> 
   </tr>
   <tr>
-    <td><img src="https://github.com/cirpa-acpri/codeshare/blob/master/Visualization%20Gallery/Images/STATA-Scatter-Multicolor.png" alt="Multi-coloured scatterplot in STATA" title="Multi-coloured scatterplot in STATA" width="450"/></td>
-    <td><br>CONTRIBUTOR: Fraser Hay<br>CONTACT: fhay@conestogac.on.ca<br>PLATFORM: STATA<br>DESCRIPTION: Multi-coloured scatter plot, comparing the incoming highschool vs. program GPAs by various different intake streams. I may have adjusted the colours manually in the graph editor. Also obviously lacking useful labels. But this is more of a test.<br>CODE: twoway (scatter pnavg hsavg) (scatter pnavg hsavg if prestudyprog == 1214) (scatter pnavg hsavg if prestudyprog == 1306) (scatter pnavg hsavg if newcurric == 1, mcolor(lavender))</td>
+    <td><img src="https://github.com/cirpa-acpri/codeshare/blob/master/Visualization%20Gallery/Images/STATA-Scatter-Multicolor.png" alt="Multi-coloured scatterplot in STATA" title="Multi-coloured scatterplot in Stata" width="450"/></td>
+    <td><br>CONTRIBUTOR: [Fraser Hay](mailto:fhay@conestogac.on.ca)<br>PLATFORM: Stata<br>DESCRIPTION: Multi-coloured scatter plot, comparing the incoming highschool vs. program GPAs by various different intake streams. I may have adjusted the colours manually in the graph editor. Also obviously lacking useful labels. But this is more of a test.<br>CODE: twoway (scatter pnavg hsavg) (scatter pnavg hsavg if prestudyprog == 1214) (scatter pnavg hsavg if prestudyprog == 1306) (scatter pnavg hsavg if newcurric == 1, mcolor(lavender))</td>
+   </tr>
    <tr>
+    <td><img src="https://raw.githubusercontent.com/Zanidean/autumn/master/README_files/figure-gfm/unnamed-chunk-4-1.png" alt="Heatmap of models from autumn R package" title="Heatmap of models from autumn R package" width="450"/></td>
+    <td><br>CONTRIBUTOR: [Alex Zanidean](mailto:AZanidean@mhc.ab.ca)<br>PLATFORM: R<br>DESCRIPTION: Standard heatmap of the output of the [Automate Many Models (autumn) package](https://github.com/Zanidean/autumn).<br>CODE: See the [autumn package Readme.rmd](https://github.com/Zanidean/autumn)
+   </tr>
 </table>
