@@ -36,7 +36,4 @@ You can easily download or work with files by creating your own clone or fork of
 * *[Recent Anaconda Webinar about Panel](https://event.on24.com/interface/registration/autoreg/index.html?eventid=2044361&sessionid=1&key=9B446BD2ECD02D63B2CD6D0075D52A6C)*
 * Use Python to conduct transactions (make [requests](https://realpython.com/python-requests/)) between web systems using APIs. (Eg. [Qualtrics](https://api.qualtrics.com/))
 
-### PyCon Canada
-[PyCon Canada](https://2019.pycon.ca/) will be held in Toronto on November 16-19
-and it will feature a **PyData** track,
-so there will be plenty of content for IR folks using Python.
+
