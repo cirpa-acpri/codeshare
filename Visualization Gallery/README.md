@@ -21,7 +21,7 @@ Have you made some pretty cool graphs and charts, and want to share them with yo
   </tr>
   <tr>
     <td><img src="https://github.com/cirpa-acpri/codeshare/blob/master/Visualization%20Gallery/Images/STATA-Scatter-Multicolor.png" alt="Multi-coloured scatterplot in STATA" title="Multi-coloured scatterplot in Stata" width="450"/></td>
-    <td>CONTRIBUTOR: <a href=mailto:fhay@conestogac.on.ca>Fraser Hay</a><br>PLATFORM: Stata<br>DESCRIPTION: Multi-coloured scatter plot, comparing the incoming highschool vs. program GPAs by various different intake streams. I may have adjusted the colours manually in the graph editor. Also obviously lacking useful labels. But this is more of a test.<br>CODE:<i><font face="Courier New">twoway (scatter pnavg hsavg) (scatter pnavg hsavg if prestudyprog == 1214) (scatter pnavg hsavg if prestudyprog == 1306) (scatter pnavg hsavg if newcurric == 1, mcolor(lavender))</i></font></p></td>
+    <td>CONTRIBUTOR: <a href=mailto:fhay@conestogac.on.ca>Fraser Hay</a><br>PLATFORM: Stata<br>DESCRIPTION: Multi-coloured scatter plot, comparing the incoming highschool vs. program GPAs by various different intake streams. I may have adjusted the colours manually in the graph editor. Also obviously lacking useful labels. But this is more of a test.<br>CODE: <i>twoway (scatter pnavg hsavg) (scatter pnavg hsavg if prestudyprog == 1214) (scatter pnavg hsavg if prestudyprog == 1306) (scatter pnavg hsavg if newcurric == 1, mcolor(lavender))</i></p></td>
    </tr>
    <tr>
     <td><img src="https://raw.githubusercontent.com/Zanidean/autumn/master/README_files/figure-gfm/unnamed-chunk-4-1.png" alt="Heatmap of models from autumn R package" title="Heatmap of models from autumn R package" width="450"/></td>
