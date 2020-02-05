@@ -10,6 +10,7 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 * *[10/18/2019] - A few more examples. Bear with us. Also, start sending us your code!*
 * *[11/25/2019] - Added R example in preparation for promotional webinar.*
 * *[12/09/2019] - Added Visualization and R package links from Alex Zanidean (Medicine Hat College, AB)*
+* *[02/04/2020] - Added a Conditional Formatting example on the Excel page.*
 
 ## Features
 
