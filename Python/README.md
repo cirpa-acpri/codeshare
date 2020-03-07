@@ -36,5 +36,6 @@ You can easily download or work with files by creating your own clone or fork of
 * *[Recent Anaconda Webinar about Panel](https://event.on24.com/interface/registration/autoreg/index.html?eventid=2044361&sessionid=1&key=9B446BD2ECD02D63B2CD6D0075D52A6C)*
 * Use Python to conduct transactions (make [requests](https://realpython.com/python-requests/)) between web systems using APIs. (Eg. [Qualtrics](https://api.qualtrics.com/))
 * [Python Cheatsheet](https://github.com/BisratYalew/python-cheatsheet)
+* [Pycel](https://github.com/dgorissen/pycel): Pycel is a small python library that can translate an Excel spreadsheet into executable python code which can be run independently of Excel.
 
 
