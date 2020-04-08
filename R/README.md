@@ -32,6 +32,7 @@ There are hundreds of places to learn about R; here are just a few:
 * R Quick Start: https://www.statmethods.net/r-tutorial/index.html
 * R for Data Science, online guide: https://r4ds.had.co.nz/index.html
 * R for Beginners, PDF: https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf
+* ***Did you know?*** You can use RStudio in the cloud! No need to install and play with versions. Go on over and make an account: [RStudio Cloud](https://client.login.rstudio.cloud/oauth/login?show_auth=0&show_login=1&show_setup=1). -- You can also share projects there, like this amazing training project from AIR! [(Part 1)](https://rstudio.cloud/spaces/1134/project/364549) [(Part 2)](https://rstudio.cloud/spaces/1134/project/365049)
 
 ## Packages by IR Users
 * [xmrr](https://github.com/Zanidean/xmrr) is used to generate control charts. 
