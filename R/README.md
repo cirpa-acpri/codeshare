@@ -33,8 +33,9 @@ There are hundreds of places to learn about R; here are just a few:
 * R for Data Science, online guide: https://r4ds.had.co.nz/index.html
 * R for Beginners, PDF: https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf
 * ***Did you know?*** You can use RStudio in the cloud! No need to install and play with versions. Go on over and make an account: [RStudio Cloud](https://client.login.rstudio.cloud/oauth/login?show_auth=0&show_login=1&show_setup=1). -- You can also share projects there, like this amazing training project from AIR! [(Part 1)](https://rstudio.cloud/spaces/1134/project/364549) [(Part 2)](https://rstudio.cloud/spaces/1134/project/365049)
+* Have a bunch of metrics for various programs where you have to make a standardized report for each one? Here's an idea of how to go about making a looping report-crunching machine in R: https://github.com/Zanidean/Automatic-Reporting
 
 ## Packages by IR Users
 * [xmrr](https://github.com/Zanidean/xmrr) is used to generate control charts. 
 * [air](https://github.com/Zanidean/air) is used to pull cube data. (This is Alberta specific, but the code could be re-tooled to work with any cube.)
-* [autumn](https://github.com/Zanidean/autumn) is a packaged approach to a certain kind of very powerful analysis. 
+* [autumn](https://github.com/Zanidean/autumn) is a packaged approach to a certain kind of very powerful analysis.
