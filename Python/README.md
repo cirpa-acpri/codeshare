@@ -37,5 +37,6 @@ You can easily download or work with files by creating your own clone or fork of
 * Use Python to conduct transactions (make [requests](https://realpython.com/python-requests/)) between web systems using APIs. (Eg. [Qualtrics](https://api.qualtrics.com/))
 * [Python Cheatsheet](https://github.com/BisratYalew/python-cheatsheet)
 * [Pycel](https://github.com/dgorissen/pycel): Pycel is a small python library that can translate an Excel spreadsheet into executable python code which can be run independently of Excel.
+* [Survey Text Data Analysis](https://github.com/cirpa-acpri/UBC-PAIR-SurveyTextAnalysis): Contributed by UBC's PAIR team, this is a method of analysis of open ended text responses to surveys using Python.
 
 
