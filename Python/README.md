@@ -28,6 +28,7 @@ You can easily download or work with files by creating your own clone or fork of
 * [Python.org](https://www.python.org/)
 * [Anaconda](https://www.anaconda.com/) - a good way to install scientific (aka data science) Python on your machine
 * [Python Cheatsheet](https://github.com/BisratYalew/python-cheatsheet)
+* If you just want to start playing with Python in your browser, check out Google Colabs: (https://colab.research.google.com/notebooks/intro.ipynb)
 
 ## Helpful Links / Interesting Ideas
 * [Automate the Boring Stuff with Python](https://automatetheboringstuff.com/): A great practical guide to learning Python with small examples and use cases.
