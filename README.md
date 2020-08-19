@@ -10,7 +10,7 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 * *[12/09/2019] - Added Visualization and R package links from Alex Zanidean (Medicine Hat College, AB)*
 * *[02/04/2020] - Added a Conditional Formatting example on the Excel page.*
 * *[05/12/2020] - Added another contribution from Alex - an auto-reporting paradigm in R.*
-* *[08/19/2020] - Added some contributions from Fraser Hay (Conestoga College, ON) - Survey analysis in R from Qualtrics
+* *[08/19/2020] - Added some contributions from Fraser Hay (Conestoga College, ON) - Survey analysis in R from Qualtrics.*
 
 ## Features
 
