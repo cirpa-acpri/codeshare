@@ -1,0 +1,112 @@
+---
+title: "Dynamic Crosstabs (Tabsets)"
+author: "Fraser Hay"
+date: "8/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(knitr)
+library(readxl)
+library(DT)
+
+# Let's grab my survey functions, since this relies on some of them.
+source("S:/Institutional_Research/.Staff & Admin/Professional Development/CIRPA/GitHub/codeshare/R/Code/Survey Data Functions.R")
+```
+
+## Dataset
+
+For the present example, we'll be using the mpg dataset.
+
+```{r mpg}
+data = mpg
+summary(data)
+```
+
+Since I'm using my Survey Data Functions, though, I'll need to add a weighting variable - until I get time to modify it to ignore that requirement. Stay tuned...
+
+```{r mpg_weight}
+data = mpg %>% 
+  mutate(weight = 1)
+```
+
+## The Problem / Concept
+
+In most of our survey reports, as a standard operating procedure, we try to break down survey results by some key variables - typically campus, age, international/domestic, and school. Once we figured out a workable (and, as is often my preference, a mostly from-Google-scratch) solution to the crosstabulation problem, we then had the issue where we had to make many, many code chunks, since each crosstab had to be in its own chunk. It immediately occurred to me that these would be great candidates for loops, but I never really got the time to tinker with it until months later.
+
+The basic concept here is you create a template analysis that utilizes one of your "demo" variables, and then loop it for as many others that you have, creating a {.tabset} for each one. You can specify labels, as well as arguments for each demo's function calls.
+
+This is accomplished by doing something that is, I think I've read, never advised, and often a sign of a bad approach: making your code into **text** (to make it dynamic), then making the program interpret it *as code*, literally. I do this twice - once to get the parameters / arguments to pass to the functions in the loop, and once afterwards to tell the RMarkdown to knit the crosstabs (DT's) as code.
+
+However, it seems to work, so that's all I really wanted.
+
+## The Example - Cylinders by Other Variables
+
+```{r include=FALSE}
+# Don't mind me, just going to filter out those odd 5-cylinder cases...
+data = filter(data, cyl != 5)
+```
+
+### Crosstabs {.tabset}
+
+```{r Crosstabs, echo=FALSE, message=FALSE, warning=FALSE}
+# --------------------------------------------------------------------
+# Crosstabs Loop
+# --------------------------------------------------------------------
+# Credit: https://gist.github.com/StevenMMortimer/e54ec050d97d79996189
+# Note: If in a tabset, you will need to exit it right after showing, since this code does not.
+
+# *IMPORTANT:* Below this chunk, include the following text (un-commented):
+
+# <!--- Knit command for crosstabs --> 
+# `r paste(knit(text = out), collapse = '\n')`
+# <!--- Make sure an end to your tabset follows this line! -->
+
+# Question in quotes
+Q = "cyl"
+# Tab labels
+Tabs = c("By Class", "By Year", "By Drivetrain", "By Manufacturer")
+# Demo variables
+Demos = c("class", "year", "drv", "manufacturer")
+# ctable() parameters - if needed
+ctable_Parameters = c("Col1Name = 'Car Class'","","Col1Name = 'Drivetrain'","")
+
+# Generating crosstab datasets for rendering - via loop
+output_data = list()
+for (x in Demos) {
+  output_data[[which(Demos == x)]] = {
+    # --------------------------------------------------------------------
+    # Looping: generate your crosstab output & rendering, save as "temp", since the statement below is how
+    # we call in the ctable() rendering with the parameters.
+    #   x = "Demo variable in quotes" -- replace with a valid one for testing.
+    # --------------------------------------------------------------------
+    temp = ct(data, x, Q)
+    # --------------------------------------------------------------------
+    # eval(parse(text = paste0("ctable(temp, ", ctable_Parameters[[1]],")"))) # For testing
+    eval(parse(text = paste0("ctable(temp, ", ctable_Parameters[[which(Demos == x)]],")")))
+    # --------------------------------------------------------------------
+  }
+}
+
+# Generating knittable code chunks based on loop above - adjust #-level as needed below.
+out = NULL
+for (i in 1:length(output_data)) {
+  knit_expanded <- paste0("\n\n#### ", Tabs[i], " {-}\n\n```{r results='asis', echo=FALSE, message=FALSE, warning=FALSE}\n\noutput_data[[", i, "]]\n\n```")
+  out = c(out, knit_expanded)
+}
+# # To preview the output, highlight run the following (without the #) - ideally pop it out into a separate window:
+# for (i in 1:length(output_data)) {print(output_data[[i]])}
+```
+
+<!--- Knit command for crosstabs -->
+`r paste(knit(text = out), collapse = '\n')`
+<!--- Make sure an end to your tabset follows this line! -->
+
+### {-}
+
+Hope this proves interesting.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
