@@ -6,11 +6,11 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 ***New here, or to GitHub? Go ahead and [read our introductory guide](Guide.md) about how to get started using what we have here, and contributing your own knowledge and creations!***
 
 ## What's new? (Top 5)
-* *[10/18/2019] - A few more examples. Bear with us. Also, start sending us your code!*
 * *[11/25/2019] - Added R example in preparation for promotional webinar.*
 * *[12/09/2019] - Added Visualization and R package links from Alex Zanidean (Medicine Hat College, AB)*
 * *[02/04/2020] - Added a Conditional Formatting example on the Excel page.*
 * *[05/12/2020] - Added another contribution from Alex - an auto-reporting paradigm in R.*
+* *[08/19/2020] - Added some contributions from Fraser Hay (Conestoga College, ON) - Survey analysis in R from Qualtrics
 
 ## Features
 
