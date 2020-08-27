@@ -52,17 +52,6 @@ wrap.labels <- function(x, len) {
   }
 }
 
-# Label Wrapping (Credit: https://stackoverflow.com/questions/20241065/r-barplot-wrapping-long-text-labels)
-# --------------------------------------------------------------------------------------------
-wrap.labels <- function(x, len) {
-  if (is.list(x))
-  {
-    lapply(x, sapply(x, function(y) paste(strwrap(y, len), collapse = "\n"), USE.NAMES = FALSE), len)
-  } else {
-    sapply(x, function(y) paste(strwrap(y, len), collapse = "\n"), USE.NAMES = FALSE)
-  }
-}
-
 # Set values - so I can adjust labels while still in a pipe.
 # --------------------------------------------------------------------------------------------
 set = function(df, r, c, value) {
