@@ -39,6 +39,12 @@ pct_format = function(value, decimals = 0) {
   ifelse(!is.na(value), sprintf(paste0("%.", decimals, "f%%"), (value * 100)), NA)
 }
 
+# Comma-Number Formatting
+# --------------------------------------------------------------------------------------------
+n_format = function(n, decimals = 0) {
+  formatC(n,format="f", big.mark=",", digits=decimals)
+}
+
 # Label Wrapping (Credit: https://stackoverflow.com/questions/20241065/r-barplot-wrapping-long-text-labels) 
 # ---------------------------------------------------------------------
 # Super useful for ensuring strings wrap at particular character counts.
