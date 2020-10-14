@@ -38,4 +38,4 @@ There are hundreds of places to learn about R; here are just a few:
 ## Packages by IR Users
 * [xmrr](https://github.com/Zanidean/xmrr) is used to generate control charts. 
 * [air](https://github.com/Zanidean/air) is used to pull cube data. (This is Alberta specific, but the code could be re-tooled to work with any cube.)
-* [autumn](https://github.com/Zanidean/autumn) is a packaged approach to a certain kind of very powerful analysis.
+* [autumn](https://github.com/Zanidean/autumn) is a packaged approach to many models approach (for exploratory data analysis and hypothesis testing).
