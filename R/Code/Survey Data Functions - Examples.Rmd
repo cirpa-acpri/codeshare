@@ -1,0 +1,168 @@
+---
+title: "Demonstrating the Survey Data Functions"
+author: "Fraser Hay"
+date: "10/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+source("Survey Data Functions.R")
+
+data = mpg
+```
+
+These functions are basically all designed to deal with categorical data.
+
+You may notice a variety of my code chunks here have warnings or messages disabled. This is more or less because I don't really know how to stop them. (I've tried all_of() for select, for example; still get the message.) Feel free to advise.
+
+### Frequency Table, Weighted
+
+```{r, message=FALSE}
+ftw(data, "manufacturer")
+# Because no weight variable is specified, weights for all observations are 1.
+x = ftw(data, "manufacturer")
+```
+
+It appears that `r pct_format(x[1,3], decimals = 1)` of the observations in the mpg dataset relate to `r x[1,1]` cars.
+
+### Frequency Graph - Simple
+
+```{r}
+frq_g_simple(x, "A Simple Graph of mpg manufacturers")
+```
+
+As most of us tend to do, I'm supposing: for frq_g_simple() we came up with a ggplot config that we liked, parameterized a few key aspects, and just kept using it over and over again.
+
+### Crosstabulation
+
+Cross-tabs are basically our bread and butter - we employ them on virtually every question we report on. Mostly this is because our international department - for good reasons, typically - knows their students tend to differ from their domestic counterparts.
+
+But back to the data at-hand, about cars.
+
+```{r, message=FALSE}
+ct(data, "year", "class")
+```
+
+It looks like SUVs were more popular in 2008. 
+
+But what percentage of our data was that?
+
+```{r, message=FALSE}
+# You have two choices to get row percents. One is in the ct() call.
+ct(data, "year", "class", pct = TRUE)
+# Or you can call row_percents() on the ct() base frequency output.
+row_percents(ct(data, "year", "class"))
+y = row_percents(x)
+```
+
+`r pct_format(y[3,ncol(y)], decimals = 1)` of the 2008 sample were SUVs.
+
+### Crosstabulation: Rendering
+
+Crosstabs are far more interesting in our "patented" ctable() DT rendering, since then you can see chi-square colouring, as we like:
+
+```{r}
+x = ct(data, "year", "cyl")[,-3] # Let's look at year models by cylinder count (minus those strange 5-cylinders).
+ctable(x)
+```
+
+Looks like 8-cylinders were more popular in 2008 than would be expected, based on chi-square. *Wow. Such amaze.*
+
+### Crosstabulation: Tabset {.tabset}
+
+One last thing to demonstrate is the ct_tabset_dt() function. As I mentioned, we do a lot of these crosstabs. So many that we like to loop through our key demos and show the distribution of the responses based on them. The ct_tabset_dt() is designed to save me a lot of copy-pasting-with-slight-tweaks. You tell it how to generate a single crosstab (for a ctable() rendering), and it repeats it for all of your demos, with each product on its own tab. (Note, this code chunk is marked {.tabset}, and the message that appears below the function call is built-in for reference.)
+
+```{r, warning=FALSE}
+# Just need to do some setup here.
+Demos = c("cyl", "class", "drv")
+Tabs = c("By Cylinder Count", "By Car Class", "By Drivetrain")
+Params = c("Col1Name = 'Cylinders', chi2 = FALSE", "Col1Name = 'Car Class', chi2 = FALSE", "Col1Name = 'Drivetrain Type', chi2 = FALSE")
+
+ct_tabset_dt("ct(data,x,'year')",Demos, Tabs, Params, HeadingLvl = 4)
+```
+
+`r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\n')`
+
+### {-}
+
+Fancy, eh?
+
+&nbsp;
+
+### Multi-Coding
+
+This function was designed (by Mark Kane) in response to the troublesome approach of Qualtrics to multiple-response questions: it includes all of the selections of a respondent in a comma-separated list. The MultiCoding() function therefore tries to detect and split out these categorical multi-selects into dummy variables that you can then work with. This function is actually useful in a variety of contexts where we want to quickly create dummy variables. The mc_**ftw()** and mc_**ct()** functions are similar to the base versions (ftw, ct), but are built using MultiCoding output.
+
+```{r}
+data = tibble(
+  c("A,B,C,D",
+    "A,C",
+    "A,B",
+    "A",
+    "A,D",
+    "B,D",
+    "A,B,D",
+    "D",
+    "A,D"))
+names(data) = "Multi_select"
+
+MultiCoding(data, "Multi_select")
+mc_ftw(data, "Multi_select")
+
+# Notice how in the above output, the "Multi_select_" is automatically truncated off the categories.
+
+x = mc_ftw(data, "Multi_select", return_N = TRUE) # return_n provides the actual number of valid cases, in a list object...
+frq_g_simple(x[[1]], "Graphing a Multi-select Question", Custom_N = x[[2]]) # Which we can then utilize for the actual N in this graph...
+```
+
+And now for a crosstabulation - What is the Gender of those who select A's?
+
+```{r, message=FALSE, warning=FALSE}
+# Generate some Gender data...
+data = bind_cols(data, tibble(c("F", "M", "M", "M", "M", "F", "M", "F", "F")))
+names(data) = c("Multi_select", "Gender")
+
+mc_ct(data, "Multi_select", "Multi_select_A", "Gender", label_1 = "Type A", label_0 = "Not Type A")
+# But ctable() looks so much better...
+x = mc_ct(data, "Multi_select", "Multi_select_A", "Gender", label_1 = "Type A", label_0 = "Not Type A")
+ctable(x, Col1Name = "Gender")
+```
+
+### Battery Questions & Graphs
+
+Often we use question batteries in our surveys, where students are asked to agree-disagree or express satisfaction to a number of things at a time using the same scale. The data that comes from Qualtrics then includes all of these questions, with the question text and the response option, as part of the column headers. It's in that context that we created our battery_ftw() and frq_g_battery() functions.
+
+For this example, let's see the multi-selects we were fooling around with above in a graph. To do this, we'll use the battery_ftw() function, which works best given a "Questions" dataframe. Allow me to demonstrate what that might look like. Again, this approach is based on the way Qualtrics data tends to come down, and how we've attempted to "efficiently" deal with these situations.
+
+```{r}
+Questions = data.frame(Q = c("Multi_select_A",
+                             "Multi_select_B",
+                             "Multi_select_C",
+                             "Multi_select_D"), 
+                       Text = c("Select all that apply. - Cat A",
+                                "Select all that apply. - Cat B",
+                                "Select all that apply. - Cat C",
+                                "Select all that apply. - Cat D"))
+Questions
+MultiCoding(data, "Multi_select")
+x = MultiCoding(data, "Multi_select")
+battery_ftw(x, "Multi_select") 
+# Note, there is a skip_Questions argument for battery_ftw(), if you don't have a Questions dataframe to reference.
+y = battery_ftw(x, "Multi_select") %>% 
+  rename("Not in Category" = `0`, "In Category" = `1`) # Normally I wouldn't need to rename them, as the values would be the categories in the question; but MultiCoding(), which created my data, just creates dummies, 0/1.
+```
+
+And now the graph.
+
+```{r}
+frq_g_battery(y, "Category Distribution", N_mode = FALSE, Legend_Rows = 1)
+```
+
+<br><br>
+
+***Questions or comments?*** <br>
+Email me: fhay(at)conestogac.on.ca
+
+<br><br><br><br><br><br><br><br>

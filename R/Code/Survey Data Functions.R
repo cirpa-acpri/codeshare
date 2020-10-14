@@ -45,6 +45,12 @@ n_format = function(n, decimals = 0) {
   formatC(n,format="f", big.mark=",", digits=decimals)
 }
 
+# Remove commas. (Credit: https://stackoverflow.com/questions/49910861/removing-comma-from-numbers-in-r)
+# --------------------------------------------------------------------------------------------
+comma_n <- function(x){ 
+  as.numeric(gsub("\\,", "", x))
+}
+
 # Label Wrapping (Credit: https://stackoverflow.com/questions/20241065/r-barplot-wrapping-long-text-labels) 
 # ---------------------------------------------------------------------
 # Super useful for ensuring strings wrap at particular character counts.
@@ -62,6 +68,7 @@ wrap.labels <- function(x, len) {
 # --------------------------------------------------------------------------------------------
 set = function(df, r, c, value) {
   df[r, c] = value
+  ungroup(df)
   return(df)
 }
 
@@ -73,7 +80,7 @@ set = function(df, r, c, value) {
 # --------------------------------------------------------------------------------------------
 ftw = function(df, Question_var_in_Quotes, Weight_var_in_Quotes = NULL, count_round = TRUE) {
   df = df %>% 
-    { if (is.null(Weight_var_in_Quotes)) select(., Question_var_in_Quotes) else select(., Question_var_in_Quotes, Weight_var_in_Quotes) } %>% 
+    { if (is.null(Weight_var_in_Quotes)) select(., all_of(Question_var_in_Quotes)) else select(., all_of(Question_var_in_Quotes, Weight_var_in_Quotes)) } %>% 
     rename(resp = Question_var_in_Quotes) %>% 
     { if (is.null(Weight_var_in_Quotes)) mutate(., w = 1) else rename(., w = Weight_var_in_Quotes) } %>% 
     drop_na %>%
@@ -191,11 +198,10 @@ row_percents = function(df, Col1Label = TRUE, count = FALSE) {
 # (C)rosstabulation (Table) Rendering
 # ------------------------------------------------------------------------------------------------------------
 # Renders output from the ct function above, optionally with chi-square test (if supplied frequency counts).
-# NOTES: SWITCH field and response in the future, so it's RxC
 # Arguments:
 #   Col1Name = Name of the table's 1st column - typically the demo / category title
-#   Col1Width = How wide should the first column (categories) be? Especially in relation to...
-#   OtherColWidths = How wide should the other columns be? Adjusting these allows you to fit more or less in the table nicely.
+#   Col1Width = How wide should the first column (categories) be? (Eg. "30%") Especially in relation to...
+#   OtherColWidths = How wide should the other columns be? Adjusting these allows you to fit more or less in the table nicely. 
 #   chi2 = Toggle the chi2 test and colouring in the table (TRUE vs. FALSE)
 #   freq = Toggle reporting the results as the raw counts, rather than making them into row percentages (T/F)
 #   decimals = Assignment for how many decimals to include in numerical output.
@@ -285,6 +291,49 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
     formatStyle(1:(N+1), border = '1px solid #ddd') %>% 
     formatStyle(2:(N+1), valueColumns = (N+2):(2*N+1), color = styleEqual(c('-1', '0', '1', '9'), c('#C00000', 'black', '#76933C', '#858585')))
   return(CrossTab)
+}
+
+# (C)ross(t)abulation (Tabset) for (D)ata(t)ables
+# ------------------------------------------------------------------------------------------------------------
+# Generates the knit code (and related materials) to create a dynamically-defined series of tabs with ctable() renderings.
+# It does this by committing two supposed cardinal sins of programming: a) interpreting a string (that you pass) as code (for generating the 
+# data behind the ctable() calls); and b) assigning a static global variable - but at least you can specify the name!
+# It returns 3 lists - the knit code to be run, the DTs (list), and the raw table input (with the row_percents() function run on it) (list).
+# Requires the ctable() and row_percents() functions.
+# Arguments:
+#   ct_code_in_quotes = The literal code that should be used to generate the underlying data tables to be fed into the ctable() calls.
+#   Demos = A vector of all the demographic crosstabulation variables you want to be looped through.
+#   Tabs = A vector of all the titles of the tabs you want generated for each respective demo-ctable() output.
+#   Params = A vector of any ctable() parameters you want passed for each respective demo-ctable() output.
+#   HeadingLvl = How many #'s to include as part of the rendered tabsets.
+#   output = Set to TRUE to have the output returned by the function call.
+#   assign = String to name the variable assignment for the output; set to NULL to disable.
+# ------------------------------------------------------------------------------------------------------------
+ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL, HeadingLvl = 4, output = FALSE, assign = "ct.dt.out") {
+  if (is.null(Params)) Params = rep("", length(Demos))
+  output_raw = list() # List for the raw tables
+  output_dt = list() # List for the datatables
+  for (x in Demos) { # For each demo variable...
+    temp = eval(parse(text = ct_code_in_quotes_x_as_demo)) # Evaluate the defined code literally...
+    output_dt[[which(Demos == x)]] = eval(parse(text = paste0("ctable(temp, ", Params[[which(Demos == x)]],")"))) # Create the ctable() call string and run...
+    output_raw[[which(Demos == x)]] = suppressMessages(temp %>% bind_cols(row_percents(.)[-1] %>% rename_at(vars(everything()),function(x) paste0(x,"_%")))) # Store the result in the raw tables list...
+  }
+  names(output_dt) = Demos # Assign names for clarity
+  names(output_raw) = Demos
+  out = NULL # Variable for knit statements
+  for (i in 1:length(output_dt)) { # For every DT we have...
+    knit_expanded <- paste0("\n\n", paste0(rep("#", HeadingLvl), collapse = "")," ", Tabs[i], " {-}\n\n```{r results='asis', echo=FALSE, message=FALSE, warning=FALSE}\n\nct.dt.out[['dt']][[", i, "]]\n\n```\n\n&nbsp;\n\n") # Make the knit statement
+    out = c(out, knit_expanded) # Append so as to create a vector.
+  }
+  message("\n--- To preview the output, paste and run the following:\nfor (i in 1:length(ct.dt.out[['dt']])) {print(ct.dt.out[['dt']][[i]])}\n\nInclude knit command in-text below for rendering (remember to end the tabset):\n`r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\\n')`")
+  ctabs = list(out, output_dt, output_raw)
+  names(ctabs) = c("knit_code", "dt", "raw")
+  if (!is.null(assign)) {
+    assign(assign,ctabs,envir = globalenv())
+  }
+  if (output == TRUE) {
+    return(ctabs)
+  }
 }
 
 # Mark's MultiCoding Function, for multi-response questions from Qualtrics (comma-separated options).
@@ -385,7 +434,7 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
 # --------------------------------------------------------------------------------------------
 # Takes your question battery eg. ("Q10" refers to "Q10_1, _2, etc.") and makes it into a frequency table.
 # It's important that you then view said table and re-arrange it properly for the rendering in frq_g_battery().
-# * Requires access to a "Questions" dataframe in order to get the category text, since that needs to be added for the output to be useful. This is an artifact of how Qualtrics encodes question-battery category text into the column headers.
+# * For best results, needs access to a "Questions" dataframe in order to get the category text, since that needs to be added for the output to be useful. This is an artifact of how Qualtrics encodes question-battery category text into the column headers.
 # Note: I tried to make this have conditional pipes instead of all these IF statements; sum() kept giving me errors for some unknown reason.
 # Arguments:
 #   Q_prefix_quoted = The prefix of the question battery you're wanting to summarize, eg. "Q10" refers to "Q10_1, _2, etc."
@@ -428,6 +477,9 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
       mutate(resp = gsub(".*-\\s", "", Questions$Text[which(Questions$Q == Q)])) %>% 
       .[,-1] %>% 
       select(resp, everything())
+  } else {
+    temp = temp %>% 
+      rename(resp = 1)
   }
   return(temp)
 }
