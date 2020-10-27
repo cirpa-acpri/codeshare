@@ -14,7 +14,7 @@ library(readxl)
 library(DT)
 
 # Let's grab my survey functions, since this relies on some of them.
-source("S:/Institutional_Research/.Staff & Admin/Professional Development/CIRPA/GitHub/codeshare/R/Code/Survey Data Functions.R")
+devtools::source_url("https://github.com/cirpa-acpri/codeshare/blob/master/R/Code/Survey%20Data%20Functions.R?raw=TRUE")
 ```
 
 ## Dataset

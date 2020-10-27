@@ -102,8 +102,9 @@ ftw = function(df, Question_var_in_Quotes, Weight_var_in_Quotes = NULL, count_ro
 #   count = Set to TRUE to return a total N for each row - usually only used in conjunction with pct.
 #   decimals = Specify an integer to round to that many places
 #   include_N = Adds an "N" column with row totals.
+#   sort = Set to TRUE to return the columns ordered highest (n) to lowest.
 # --------------------------------------------------------------------------------------------
-ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE) {
+ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE) {
   Data = dataset %>% 
     { if (is.null(Weight_var_in_Quotes)) select(., Column_Question_quoted, Row_Demo_quoted) else select(., Column_Question_quoted, Row_Demo_quoted, Weight_var_in_Quotes) } %>%
     rename(Response = 1, Field = 2) %>% 
@@ -156,6 +157,13 @@ ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Qu
   if (!is.null(decimals)) {
     Output = Output %>% mutate_at(vars(-1), ~ round(., digits = decimals))
   }
+  if (sort == TRUE) {
+    x = Output
+    a = x[,1]
+    b = x[,2:ncol(x)]
+    b = b[,rev(order(b[1,]))]
+    Output = bind_cols(a, b)
+  }
   return(Output)
 }
 
@@ -200,13 +208,14 @@ row_percents = function(df, Col1Label = TRUE, count = FALSE) {
 # Renders output from the ct function above, optionally with chi-square test (if supplied frequency counts).
 # Arguments:
 #   Col1Name = Name of the table's 1st column - typically the demo / category title
-#   Col1Width = How wide should the first column (categories) be? (Eg. "30%") Especially in relation to...
+#   Col1Width = How wide should the first column (categories) be? (Eg. "30%", "100px") Especially in relation to...
 #   OtherColWidths = How wide should the other columns be? Adjusting these allows you to fit more or less in the table nicely. 
 #   chi2 = Toggle the chi2 test and colouring in the table (TRUE vs. FALSE)
 #   freq = Toggle reporting the results as the raw counts, rather than making them into row percentages (T/F)
 #   decimals = Assignment for how many decimals to include in numerical output.
+#   font = Font size for the table container.
 # ------------------------------------------------------------------------------------------------------------
-ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%", chi2 = TRUE, freq = FALSE, decimals = NULL, title = "") {
+ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%", chi2 = TRUE, freq = FALSE, decimals = NULL, title = "", font = "15") {
   # Assign Col1Name, if not default to supplied variable title
   if (!is.null(Col1Name)) { names(df)[1] = Col1Name } 
   if (chi2 == TRUE) {
@@ -273,11 +282,13 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
   # The datatable call.
   CrossTab = datatable(df, class = 'row-border', rownames = FALSE, 
                        caption = htmltools::tags$caption(style = 'caption-side: top; text-align: center; color:black; font-size:150% ;',title),
-                       options = list(scrollX = FALSE, paging = FALSE, searching = FALSE, dom = 't', ordering = F, autoWidth = TRUE, 
-                                      columnDefs = list(list(visible=FALSE, targets = (N+1):(2*N)),
-                                                        list(className = 'dt-center', targets = "_all"),
-                                                        list(width = Col1Width, targets = 0),
-                                                        list(width = OtherColWidths, targets = 1:N)))) %>%
+                       options = list(
+                         initComplete = htmlwidgets::JS("function(settings, json) {", paste0("$(this.api().table().container()).css({'font-size': '", paste0(font, "px"), "'});"), "}"), # Source: https://stackoverflow.com/questions/44101055/changing-font-size-in-r-datatables-dt
+                         scrollX = FALSE, paging = FALSE, searching = FALSE, dom = 't', ordering = F, autoWidth = TRUE,
+                         columnDefs = list(list(visible=FALSE, targets = (N+1):(2*N)),
+                                           list(className = 'dt-center', targets = "_all"),
+                                           list(width = Col1Width, targets = 0),
+                                           list(width = OtherColWidths, targets = 1:N)))) %>%
     formatStyle(columns = 1, target = "row", # "Overall" row formatting
                 backgroundColor = styleEqual(c("Overall"), c("#337ab7")), 
                 fontWeight = styleEqual("Overall", 'bold'), 
@@ -289,9 +300,10 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
                 backgroundPosition = 'left') %>%
     formatPercentage(ifelse(freq==FALSE,2,0):ifelse(freq==FALSE,(N+1),0), ifelse(!is.null(decimals),ifelse(freq==FALSE,decimals-2,decimals), 0)) %>% # Percentages
     formatStyle(1:(N+1), border = '1px solid #ddd') %>% 
-    formatStyle(2:(N+1), valueColumns = (N+2):(2*N+1), color = styleEqual(c('-1', '0', '1', '9'), c('#C00000', 'black', '#76933C', '#858585')))
+    formatStyle(2:(N+1), valueColumns = (N+2):(2*N+1), color = styleEqual(c('-1', '0', '1', '9'), c('#C00000', 'black', '#76933C', '#858585'))) 
   return(CrossTab)
 }
+
 
 # (C)ross(t)abulation (Tabset) for (D)ata(t)ables
 # ------------------------------------------------------------------------------------------------------------
@@ -342,22 +354,22 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
 # Used for multiple-response questions (from Qualtrics) where each option is a separate column, but shares a common column
 # name prefix (eg. 'Q7_'). It will grab all of these columns and, where a value exists, code a 1 or a 0 if a value is present
 # or not, coding rows NA if the respondent didn't complete any question of the series. (Might thereby be important that you
-# include a "none of the above" option.)
+# include a "none of the above" option for your survey questions.)
 # Arguments:
-#   label = Set your own prefix for the output; otherwise, the current prefix will be preserved.
+#   label = Set your own prefix (eg. "abc" = "abc_item") for the output; otherwise, the current prefix will be preserved. Setting to "" removes all prefixes.
 # --------------------------------------------------------------------------------------------
 MultiCoding <- function(data, Q, label = NULL) {
-  label <- ifelse(is.null(label),Q,label)
+  label <- ifelse(is.null(label),paste0(Q,"_"),ifelse(label == "", "", paste0(label,"_")))
   data <- select(data, all_of(Q)) %>% 
     rename(Q = 1)
   temp = data %>% drop_na()
-  temp$Q <- as.character(temp$Q)
-  resp <- unique(unlist(strsplit(temp$Q, ",(?!\\s)", perl = TRUE)))
+  temp$Q <- trimws(as.character(temp$Q))
+  resp <- unique(trimws(unlist(strsplit(temp$Q, ",(?!\\s)", perl = TRUE))))
   dummies <- matrix(NA, nrow(data), length(resp)) # Create empty matrix to populate dummies.
   for (i in 1:length(resp)) {
     dummies[,i] <- ifelse(str_detect(data$Q, pattern = coll(resp[i])), 1, 0)
   }
-  colnames(dummies) <- paste0(rep(paste0(label, "_"), length(resp)), resp)
+  colnames(dummies) <- paste0(rep(label, length(resp)), resp)
   as.data.frame(dummies) # Return the dataframe
 }
 
@@ -424,9 +436,9 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
   } else { 
     temp = select(df, Weight_var_in_Quotes, Demo_in_quotes)
   }
-  bind_cols(temp, MultiCoding(df, Question_in_quotes)[which(names(MultiCoding(df, Question_in_quotes)) == Item_from_Q_in_quotes)]) %>%
+  bind_cols(temp, MultiCoding(df, Question_in_quotes, label = "")[Item_from_Q_in_quotes]) %>%
     ct(2, 3, 1) %>%
-    rename(!!label_0 := 2, !!label_1 := 3) %>%
+    rename(!!label_0 := 2, !!label_1 := 3, !!Demo_in_quotes := 1) %>%
     .[,c(1,3,2)]
 }
 
@@ -441,9 +453,12 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
 #   Weight_var_in_Quotes = Weighting variable. Required.
 #   freq = Set to TRUE to return frequency counts instead of row percents (default, FALSE)
 #   round_freq = Round frequencies / counts to integers
-#   skip_Questions = If you don't have a "Questions" dataset, set to TRUE - this will skip looking up the category text
+#   Questions_df = Specify your "Questions" dataset. If you don't have a "Questions" dataset, set to NULL - this will skip looking up the category text.
+#     > Questions is supposed to be a dataframe with the following columns (In Qualtrics output, this is the first two rows of an excel export):
+#       + Q = The column name in the reference dataset
+#       + Text = The actual question text
 # --------------------------------------------------------------------------------------------
-battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = FALSE, round_freq = TRUE, skip_Questions = FALSE) {
+battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = FALSE, round_freq = TRUE, Questions_df = Questions) {
   if (is.null(Weight_var_in_Quotes)) { 
     temp = select(df, contains(Q_prefix_quoted)) %>% 
       mutate(weight = 1) %>% 
@@ -472,17 +487,18 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
     temp = temp %>% 
       pivot_wider(names_from = resp, values_from = count)
   } 
-  if (skip_Questions == FALSE) {
-    temp = temp %>% 
-      mutate(resp = gsub(".*-\\s", "", Questions$Text[which(Questions$Q == Q)])) %>% 
-      .[,-1] %>% 
-      select(resp, everything())
-  } else {
+  if (is.null(Questions_df)) {
     temp = temp %>% 
       rename(resp = 1)
+  } else {
+    temp = temp %>% 
+      mutate(resp = gsub(".*-\\s", "", Questions_df$Text[which(Questions_df$Q == Q)])) %>% 
+      .[,-1] %>% 
+      select(resp, everything())
   }
   return(temp)
 }
+
 
 # (Fr)e(q)uency (G)raph, (Simple)
 # --------------------------------------------------------------------------------------------
@@ -500,12 +516,12 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
 #   Cat_pcts = If you want the graph to be of counts (not percentages), put your counts into the "pct" column and set the option Cat_pct = FALSE.
 #   decimals = Number of decimals to include for percentage rounding.
 # --------------------------------------------------------------------------------------------
-frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, Cat_pcts = TRUE, decimals = 0) {
+frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, Cat_pcts = TRUE, decimals = 0, colour = "#6baed6") {
   df = df %>%  
     mutate(resp = wrap.labels(resp, Cat_wrap_length)) 
   df %>% 
     ggplot(aes(x=resp, y=pct)) +
-    geom_bar(stat = 'identity', fill = '#6baed6') + 
+    geom_bar(stat = 'identity', fill = colour) + 
     xlim(rev(df$resp)) + 
     geom_text(aes(label = {if (Cat_pcts == TRUE) pct_format(pct, decimals) else pct}), size = Value_font_size, position = position_stack(vjust = 0.9)) +
     coord_flip() +
