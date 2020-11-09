@@ -3,7 +3,7 @@
 # For working with data and surveys from Qualtrics
 
 # By: Fraser Hay, Conestoga College
-# With some things stolen from: Mark Kane, Conestoga College
+# With almost all things stolen from: MARK KANE!!!, Conestoga College
 # --------------------------------------------------------------------------------------------
 
 # These functions are probably inefficiently coded, but they seem to work. They also save me a lot of time.
@@ -80,7 +80,7 @@ set = function(df, r, c, value) {
 # --------------------------------------------------------------------------------------------
 ftw = function(df, Question_var_in_Quotes, Weight_var_in_Quotes = NULL, count_round = TRUE) {
   df = df %>% 
-    { if (is.null(Weight_var_in_Quotes)) select(., all_of(Question_var_in_Quotes)) else select(., all_of(Question_var_in_Quotes, Weight_var_in_Quotes)) } %>% 
+    { if (is.null(Weight_var_in_Quotes)) select(., Question_var_in_Quotes) else select(., Question_var_in_Quotes, Weight_var_in_Quotes) } %>% 
     rename(resp = Question_var_in_Quotes) %>% 
     { if (is.null(Weight_var_in_Quotes)) mutate(., w = 1) else rename(., w = Weight_var_in_Quotes) } %>% 
     drop_na %>%
@@ -157,15 +157,36 @@ ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Qu
   if (!is.null(decimals)) {
     Output = Output %>% mutate_at(vars(-1), ~ round(., digits = decimals))
   }
-  if (sort == TRUE) {
+  
+  if (all(sort == TRUE)) {
     x = Output
     a = x[,1]
     b = x[,2:ncol(x)]
     b = b[,rev(order(b[1,]))]
     Output = bind_cols(a, b)
+    return(Output)
+  } else if (length(sort) > 1) {
+    return( Output[,c(Row_Demo_quoted,sort)])
   }
   return(Output)
-}
+}  
+  
+  
+  
+  
+#   if (sort == TRUE) {
+#     x = Output
+#     a = x[,1]
+#     b = x[,2:ncol(x)]
+#     b = b[,rev(order(b[1,]))]
+#     Output = bind_cols(a, b)
+#   }
+#   return(Output)
+# }
+
+
+
+
 
 # Row Percents
 # ------------------------------------------------------------------------------------------------------------
@@ -515,15 +536,16 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
 #   Custom_N = Specify a custom N to appear in the subtitle
 #   Cat_pcts = If you want the graph to be of counts (not percentages), put your counts into the "pct" column and set the option Cat_pct = FALSE.
 #   decimals = Number of decimals to include for percentage rounding.
+#   pos = function for positioning text labels. Eg. position_nudge(x = 0, y = 0.05)
 # --------------------------------------------------------------------------------------------
-frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, Cat_pcts = TRUE, decimals = 0, colour = "#6baed6") {
+frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, Cat_pcts = TRUE, decimals = 0, colour = "#6baed6", pos = position_stack(vjust = 0.9)) {
   df = df %>%  
     mutate(resp = wrap.labels(resp, Cat_wrap_length)) 
   df %>% 
     ggplot(aes(x=resp, y=pct)) +
     geom_bar(stat = 'identity', fill = colour) + 
     xlim(rev(df$resp)) + 
-    geom_text(aes(label = {if (Cat_pcts == TRUE) pct_format(pct, decimals) else pct}), size = Value_font_size, position = position_stack(vjust = 0.9)) +
+    geom_text(aes(label = {if (Cat_pcts == TRUE) pct_format(pct, decimals) else pct}), size = Value_font_size, position = pos) +
     coord_flip() +
     {if (Cat_pcts == TRUE) scale_y_continuous(labels = scales::percent_format(accuracy = 1)) else scale_y_continuous(breaks = unname(round(quantile(c(0,max(df$pct))), 0)), labels = unname(round(quantile(c(0,max(df$pct))), 0)))} + 
     patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), subtitle = ifelse(is.null(Custom_N), paste0("N = ",formatC(sum(df$count),format="f", big.mark=",", digits=0)), ifelse(Custom_N == FALSE, "", paste0("N = ",formatC(Custom_N,format="f", big.mark=",", digits=0)))), theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,5,0)))) +

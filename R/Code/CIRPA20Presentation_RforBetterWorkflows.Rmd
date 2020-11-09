@@ -1,0 +1,443 @@
+---
+title: "Using R for Better Workflows"
+author: | 
+  | Mark Kane & Fraser Hay
+  |
+  | Conestoga College
+date: "October 27, 2020"
+output:
+  
+  slidy_presentation:
+    duration: 20
+    css: ./Resources/custom.css
+    font_adjustment: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+devtools::source_url("https://github.com/cirpa-acpri/codeshare/blob/master/R/Code/Survey%20Data%20Functions.R?raw=TRUE")
+
+library(knitr)
+library(openxlsx)
+library(revealjs)
+```
+
+## A note to users: {.hideHeader}
+
+This presentation is best viewed in **full-screen mode**!
+
+For most browsers - simply hit <span style="font-family: Arial">**F11**</span> to toggle it (on and off).
+
+If you wish to view the code for this presentation, we are hosting it over at the [CIRPA CodeShare](https://github.com/cirpa-acpri/codeshare) site (R section).
+
+## Outline
+
+* Importance of efficient and effective workflows
+* Traditional vs modern data analysis workflow
+* Conestoga's old & new workflows for survey reporting
+* Overview of R Markdown
+* How we are using R Markdown to improve our workflows
+* Finished product
+* Advantages & disadvantages of using R markdown for survey reporting
+
+## Efficient and Effective Workflows
+### Why should we care?
+
+*	Reproducible – Others can redo the analysis and get the same results
+*	Reusable – Do not have to start from scratch for each project
+*	Reduce Errors – Less manual steps lead to less errors
+*	Easier to update / fix errors – Can make a change in an initial step and the change will flow through seamlessly
+
+## Why is Reproducibility Difficult?
+
+* Poor or non-existent documentation 
+* A small number of reasonable decisions can lead to a large number of end results
+
+    * How do I handle missing values?
+    * How do I code the variables?
+    * Do I collapse sparse categories?
+    * Should the results be weighted?
+
+If we assume we have 10 binary decisions in the analysis this would lead to 2^10^ = 1024 different paths
+
+```{r RepoComic, echo=FALSE, fig.align='center', out.width="45%"}
+    include_graphics("Resources/Reprod_comic_phd.gif")
+```
+
+## Data Analysis Workflow
+
+<div class='left' style='float:left; width:48%'>
+
+* Import Data
+* Data Manipulation
+* Data Analysis & Visualization
+* Reporting
+
+</div>
+
+
+<div class='right' style='float:right; width:48%'>
+```{r DataMachine, echo=FALSE, fig.align='center', out.width="80%"}
+    include_graphics("Resources/DataMachine.jpeg")
+```
+</div>
+
+---
+
+## Traditional vs Modern Workflows
+
+
+<div class='left' style='float:left; width:48%'>
+### Traditional 
+
+* Menu Driven
+* Copy-and-paste
+* Error prone
+* Not easily reproducible
+
+WET approach – **W**e **E**njoy **T**yping
+
+</div>
+   
+<div class='right' style='float:right; width:48%'>
+### Modern
+
+* All steps performed using code
+* Repeated steps are automated and standardized
+* Reduces chances for errors
+* Understandable & usable by others
+
+DRY approach – **D**on’t **R**epeat **Y**ourself
+</div>
+
+
+## Conestoga's Old Workflow
+
+* Uses 4 software platforms
+* Includes <span style="color:red">manual</span> processes that are not reproducible
+
+```{r oldWF, out.width="55%"}
+include_graphics("Resources/OldWF.jpg")
+```
+
+## Conestoga's New Workflow
+
+* Uses 2 software platforms
+
+```{r newWF, echo=FALSE, out.width="57%"}
+include_graphics("Resources/NewWF.jpg")
+```
+
+## What is R Markdown?
+
+* A (free) package in R that allows you to create reproducible workflows.
+
+<iframe src="https://player.vimeo.com/video/178485416" style="margin-bottom: 2em;" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" width="100%" height="70%" frameborder="0"></iframe>
+
+## How are we using R & R Markdown? {.hideHeader}
+
+<br><br><br><br>
+
+<p style="font-size:160%; line-height: 200%; text-align: center; font-weight: bold;">How are <span style="color:#b09320">WE</span> using R & R Markdown?</p>
+
+```{r Logo, echo=FALSE, fig.align='center', out.width="35%"}
+include_graphics("Resources/logo.jpg")
+data = readRDS("Resources/ASFS_OS_data.rds")
+```
+
+## How are we using R & R Markdown? (1/8)
+
+### Making functions to save time
+
+<div style= 'overflow: auto; height:60%'>
+   <div class='left' style='float:left; width:48%'>
+
+* Frequency tables
+* Data transformations, dummy variables
+* Lots of loops
+* Graphs, plots and formatting
+
+   </div>
+   <div class='right' style='float:right; width:48%'>
+```{r Functions, echo=TRUE, fig.align='center', fig.height=4.6, fig.width=7}
+frq_g_simple(data, "Example")
+```
+   </div>
+</div>
+
+> * Sharing them on GitHub (https://github.com/cirpa-acpri/codeshare)
+
+## How are we using R & R Markdown? (2/8)
+
+### Making the report before the data is in -- Dynamic code / statements
+
+```{r Dynamic Code, echo=FALSE}
+data = mpg
+variable = data$hwy
+```
+
+```{r Dynamic Code2, echo=TRUE}
+observation = round(mean(variable),0)
+```
+
+```{r Dynamic Code3, echo=FALSE}
+print("<i>Example:</i> `r observation`% of students indicated they prefer driving in the city.")
+```
+* <i>Example:</i> `r observation`% of students indicated they prefer driving in the city.
+
+```{r Dynamic Code4, echo=TRUE, fig.width=5, fig.height=3.5}
+hist(variable)
+```
+
+## How are we using R & R Markdown? (3/8)
+
+###  Plots for any occasion
+
+```{r include=FALSE}
+# Dataframes for example graphs.
+data <- data.frame(
+  Q = c("I want to learn more R", "R is useful", "R is hard to learn"),
+  sa = c(0.48, 0.57, 0.23),
+  a = c(0.35, 0.25, 0.30),
+  n = c(0.1, 0.05, 0.11),
+  d = c(0.05, 0.09, 0.29),
+  sd = c(0.02, 0.04, 0.07)) %>% 
+  mutate(count = 1)
+names(data) = c("resp", "Strongly Agree", "Agree", "Neither", "Disagree", "Strongly Disagree", "count")
+```
+
+<div style= 'overflow: auto; height:65%'>
+   <div class='left' style='float:left; width:48%'>
+<br>
+
+* Condensing common graphs (half-screen of code) into parameterized one-line function-calls
+
+   </div>
+
+   <div class='right' style='float:right; width:48%'>
+```{r ggplots2, echo=TRUE, fig.height=4.6, out.width="100%", fig.align='center'}
+frq_g_battery(data, "Example", subtitle = "Not actual data")
+```
+   </div>
+</div>
+
+>   * Many other types possible (https://www.r-graph-gallery.com/index.html)
+
+<br><br>
+
+```{r echo=FALSE, fig.align='center', fig.width=7, fig.height=4.8}
+Employ_Data = readRDS("Resources/Employ_Data.rds")
+y1 = 2009
+y2 = 2019
+y_proj = 2028
+ggplot(Employ_Data, aes(x=Year, y=Pct_Change, group=Level, color=Level)) +
+  geom_line(data=subset(Employ_Data, Year<=y2), size=1, linetype=1) + 
+  geom_line(data=subset(Employ_Data, Year>=y2), size=1, linetype=3) + 
+  geom_line(size=2.5, alpha=0.2, linetype=1) + 
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + 
+  scale_x_continuous(breaks = (y1+1):y_proj) +
+  labs(y = "Percent (%) Change in Jobs (since 2009)") + 
+  geom_vline(xintercept=2019) + 
+  annotate("text", x = y2-2.25, y = max(Employ_Data$Pct_Change), size = 4, color = "grey45", fontface = "bold", label = "HISTORY") +
+  annotate("text", x = y2+2.5, y = max(Employ_Data$Pct_Change), size = 4, color = "grey45", fontface = "bold", label = "PROJECTION") +
+  theme(legend.position="bottom",
+        legend.title = element_blank(),
+        legend.key = element_rect(fill = NA),
+        panel.background = element_blank(),
+        panel.grid.major = element_line(colour = "grey85"),
+        panel.grid.minor = element_line(colour = "grey95"),
+        plot.title = element_text(hjust = 0.5),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(size=10, angle=45, margin = margin(3, 0, 0, 0), hjust = 1))
+```
+
+## How are we using R & R Markdown? (4/8)
+
+### Tabs & buttons (HTML reports only)
+
+* Creates interactivity and organization in reports.
+
+<div style= 'overflow: auto; height:60%'>
+   <div class='left' style='float:left; width:48%'>
+```{r i1, echo=FALSE, fig.align='center', out.width='85%'}
+include_graphics("Resources/i1.jpg")
+```
+   </div>
+   <div class='right' style='float:right; width:48%'>
+```{r i2, echo=FALSE, fig.align='center', out.width='85%'}
+include_graphics("Resources/i2.jpg")
+```
+   </div>
+</div>
+
+## How are we using R & R Markdown? (5/8)
+
+### (Lots of) Cross-tabulation tables
+
+* Our most common reporting operation after frequencies. Looping through variables, showing breakdowns.
+
+```{r i3, echo=FALSE, fig.align='center', out.width='55%'}
+include_graphics("Resources/i3.jpg")
+```
+
+## How are we using R & R Markdown? (6/8)
+
+### Images / videos / links
+
+ <table style="width:100%">
+  <tr>
+    <td>![](Resources\CIRPA.jpg){width=300 height=300}</td>
+    <td><iframe src="https://player.vimeo.com/video/178485416" style="margin-bottom: 2em;" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" width="400px" height="400px" frameborder="0"></iframe></td>
+    <td>https://github.com/cirpa-acpri/codeshare</td>
+  </tr>
+</table> 
+
+## How are we using R & R Markdown? (7/8)
+
+### PDF / file embedding
+
+<center>
+
+![](Resources\S20 COVID Student Survey Infographic.pdf){width=60% height=800}
+
+</center>
+
+## How are we using R & R Markdown? (8/8)
+
+### Tweaking appearances
+
+* Most of our reports are in HTML - most flexibility in aesthetics
+*	Can use HTML, JavaScript, and CSS to improve functionality and appearance
+    * Colours, sizes, effects, show/hide, triggers, formatting, elements, etc.
+* Can re-use that code, or employ as templates for other projects
+
+## Finished Product
+
+* Get scrolling!
+
+* Fig 1: A title, logo, and outset.
+
+```{r i4, echo=FALSE, fig.align='center', out.width='85%'}
+include_graphics("Resources/i4.jpg")
+```
+
+* Fig 2: Basic graphs. 
+
+```{r i5, echo=FALSE, fig.align='center', out.width='85%'}
+include_graphics("Resources/i5.jpg")
+```
+
+* Fig 3: Importing a picture - of an Excel table.
+  * For those times you have non-R collaborators.
+
+```{r i6, echo=FALSE, fig.align='center', out.width='85%'}
+include_graphics("Resources/i6.jpg")
+```
+
+* Fig 4: Stacked bar charts
+
+```{r i7, echo=FALSE, fig.align='center', out.width='85%'}
+include_graphics("Resources/i7.jpg")
+```
+
+* Fig 5: Oh look, a decision tree!
+
+```{r i8, echo=FALSE, fig.align='center', out.width='85%'}
+include_graphics("Resources/i8.jpg")
+```
+
+* End of figures.
+
+## Effect on our Workflow
+
+* After an initial time investment, we now are reaping significant benefits in terms of reproducibility and time savings
+  * Reports that would previously take around a *month* now only take a about a *week*
+* Cascading data and report adjustments implemented in minutes
+* We're starting to move some of our routine / mainline reports (eg. Labour Market, Program Review Reporting) into an R format
+  * Also using for ad-hoc requests when R is the best tool for the job
+* We're learning and borrowing (stealing) code and ideas from each other
+  * R makes big projects, like dabbling in machine learning, within arms reach
+
+
+## Advantages of Using R Markdown for Survey Reporting
+
+* Reproducible &#8594; reusable (in whole or in part)
+* Can easily rerun code if an error is made or a change is requested
+  * Example: new cases, new weighting, adding new cross-tab breakdowns
+* All steps taken, from data cleaning to reporting, recorded in one software package
+  * Fewer working files, fewer platforms, no copy/paste errors
+* Reports and elements can be parameterized
+* Multiple output formats: HTML / websites, PDF, Word, PowerPoint
+* Can use multiple languages: SQL, Python, HTML, CSS
+*	Large community of R users
+* Free ($0), open source software
+
+
+## Disadvantages of Using R Markdown for Survey Reporting
+
+* Learning curve
+  * *Solution: Google and ask the massive online community*
+* If there is an error in one of the code chunks the report will not compile
+  * *Solution: Use Google, a support group ([CIRPA Forums](https://cirpa.member365.com/sharingnetwork/dashboard) / [CodeShare](https://github.com/cirpa-acpri/codeshare)), and be patient while troubleshooting*
+* If report is HTML, no ability to track changes or add comments
+  * New report formats may require an adjustment for stakeholders
+  * *Solution: Export to Word for collaborative revisions*
+* Software package version control
+  * Different team members may be using different versions of the same R libraries
+  * *Solution: Use tools / packages to track your project versionning*
+* Every change to the report requires re-running (compiling) the entire report
+  * *Solution: Break code into smaller chunks and only render what you're working on*
+
+## Resources
+
+<span style="line-height: 100%"><a href=https://github.com/cirpa-acpri/codeshare>CIRPA's CodeShare GitHub Site</a><br>
+  <span style="font-size: 20px;">https://github.com/cirpa-acpri/codeshare</span></span>
+
+<a href=https://rmarkdown.rstudio.com/lesson-1.html>R Studio: Introduction to R Markdown</a><br>
+  <span style="font-size: 20px;">https://rmarkdown.rstudio.com/lesson-1.html</span>
+
+<a href=https://rstudio.com/resources/webinars/getting-started-with-r-markdown/>Getting Started with R Markdown (RStudio Webinar)</a><br>
+  <span style="font-size: 20px;">https://rstudio.com/resources/webinars/getting-started-with-r-markdown/</span>
+
+<a href=https://education.rstudio.com/learn/beginner/> R Studio: Education for Beginners (in R)</a><br>
+  <span style="font-size: 20px;">https://education.rstudio.com/learn/beginner/</span>
+  
+<a href=https://r4ds.had.co.nz/index.html>"R for Data Science"; eBook (made in Bookdown), by Garrett Grolemund & Hadley Wickham</a><br>
+  <span style="font-size: 20px;">https://r4ds.had.co.nz/index.html</span>
+
+<a href=https://bookdown.org/yihui/rmarkdown/>"R Markdown: The Definitive Guide"; eBook (made in Bookdown), by Yihui Xie, J. J. Allaire, Garrett Grolemund</a><br>
+  <span style="font-size: 20px;">https://bookdown.org/yihui/rmarkdown/</span>
+
+<a href=https://bookdown.org/yihui/rmarkdown-cookbook/>"R Markdown Cookbook"; eBook (made in Bookdown), by Yihui Xie, Christophe Dervieux, Emily Riederer</a><br>
+  <span style="font-size: 20px;">https://bookdown.org/yihui/rmarkdown-cookbook/</span>
+
+## Scary Movie... with a Happy Ending
+
+<iframe src="https://www.youtube.com/embed/s3JldKoA0zw" style="margin-bottom: 2em;" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" width="100%" height="70%" frameborder="0"></iframe>
+
+## End {.hideHeader}
+
+<br>
+
+```{r Logo2, echo=FALSE, fig.align='center', out.width="35%"}
+include_graphics("Resources/logo.jpg")
+data = readRDS("Resources/ASFS_OS_data.rds")
+```
+
+<br>
+
+<p style="font-size:280%; line-height: 70%; text-align: center; font-weight: bold;">Thank you!</p>
+
+
+<div style= 'overflow: auto; height:25%'>
+   <div class='left' style='float:left; width:48%'>
+<p style="font-size:175%; text-align: center; font-weight: bold;">Mark Kane</p>
+<p style="font-size:120%; text-align: center;">Statistician</p>
+   </div>
+
+   <div class='right' style='float:right; width:48%'>
+<p style="font-size:175%; text-align: center; font-weight: bold;">Fraser Hay</p>
+<p style="font-size:120%; text-align: center;">Institutional Research Analyst</p>
+   </div>
+</div>
+
