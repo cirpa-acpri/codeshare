@@ -3,7 +3,7 @@
 # Short title: A script to sort files into folders based on a look-up table.
 # -----------------------------------------------------------------------------
 # Longer description:
-# Basically, we recieved a bunch of PDF reports from the province, which had program codes attached, 
+# Basically, we received a bunch of PDF reports from the province, which had program codes attached, 
 # but I needed to quickly upload them to a folder structure based on academic schools on our website.
 # So I made a look-up table of all the file names (highlight all the files, CTRL+SHIFT+Right-click 
 # on them > Copy as path > paste in Excel), isolated the program codes using formulas in Excel, then
