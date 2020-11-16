@@ -2,7 +2,7 @@ AutoHotkey
 ![AHK](https://www.autohotkey.com/assets/images/ahk-logo-no-text241x78-180.png)
 =======
 
-[AutoHotkey](https://autohotkey.com/) is a useful tool for when you find yourself doing repetitive tasks in Windows. More speicifcally, AutoHotkey (.ahk) is a Windows scripting language that allows you to create shortcuts, hotkeys, and scripts for your computer. You can make repetitive tasks faster, get your computer loop commands, even have the computer generate files, display information, and look for cues on the screen. It is a very handy automation tool for people who do our sort of all-over-the-place work.  Think of it as "macros for Windows". Plus, if you pick it up, you'll learn some basic computer programming skills. Look at you, professionally developing!
+[AutoHotkey](https://autohotkey.com/) is a useful tool for when you find yourself doing repetitive tasks in Windows. More speicifcally, AutoHotkey (.ahk) is a Windows scripting language that allows you to create shortcuts, hotkeys, and scripts for your computer. You can make repetitive tasks faster, get your computer to loop commands, even have the computer generate files, display information, and look for cues on the screen. It is a very handy automation tool for people who do our sort of all-over-the-place IR work. Think of it as "macros for Windows". Plus, if you pick it up, you'll learn some basic computer programming skills. Look at you, professionally developing!
 
 ## What's here
 Code is separated into two types, which may overlap at times. They are all meant to be helpful exhibits or examples of what people are using or what AutoHotkey can do.
