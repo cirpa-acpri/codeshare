@@ -7,7 +7,8 @@
 # each Chair their report that I had made for them via Outlook email attachment. Typically this would involve opening
 # 35-odd emails and crafting each by hand. I had looked into making a mail-merge with attachments, never had any luck.
 # I didn't want to install anyone's add-ons. 
-# Though I'd Google it again, and stumbled across a fascinating youtube series: https://www.youtube.com/watch?v=b7_bW45G_1o
+
+# Thought I'd Google it again, and stumbled across a fascinating youtube series: https://www.youtube.com/watch?v=b7_bW45G_1o
 # Copied the instructions, and by golly, it worked.
 
 # In this example, I basically just was going from my assembled list of reports, which happened to have Chair names in them.
