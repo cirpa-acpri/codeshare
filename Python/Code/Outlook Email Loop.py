@@ -14,7 +14,7 @@
 # In this example, I basically just was going from my folder of reports, which happened to have Chair names in the file names.
 # I made a list of the reports (file names), harvested the Chair names, and used them as the addressees (Outlook would check
 # the names and look up the email addresses) and attached the appropriate file. I ended up with all of those 35 shells I would
-# have made by hand within 10 seconds, after clicking "run".
+# have made by hand over 30 minutes pop up within 10 seconds, after clicking "run".
 
 # The only thing to keep in mind is you need to get your message into HTML format. There are some websites that will let
 # you copy-paste your rich text and get HTML out of it. (eg. https://wordtohtml.net/)
