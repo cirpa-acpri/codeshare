@@ -11,7 +11,7 @@
 # Thought I'd Google it again, and stumbled across a fascinating youtube series: https://www.youtube.com/watch?v=b7_bW45G_1o
 # Copied the instructions, and by golly, it worked.
 
-# In this example, I basically just was going from my assembled list of reports, which happened to have Chair names in them.
+# In this example, I basically just was going from my folder of reports, which happened to have Chair names in the file names.
 # I made a list of the reports (file names), harvested the Chair names, and used them as the addressees (Outlook would check
 # the names and look up the email addresses) and attached the appropriate file. I ended up with all of those 35 shells I would
 # have made by hand within 10 seconds, after clicking "run".
