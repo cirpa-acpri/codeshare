@@ -39,13 +39,19 @@ pct_format = function(value, decimals = 0) {
   ifelse(!is.na(value), sprintf(paste0("%.", decimals, "f%%"), (value * 100)), NA)
 }
 
+# Remove percent, return number. Basically the reverse of pct_format.
+# --------------------------------------------------------------------------------------------
+pct_n = function(value) {
+  ifelse(!is.na(value), as.numeric(gsub("\\%", "", value)) / 100, NA)
+}
+
 # Comma-Number Formatting
 # --------------------------------------------------------------------------------------------
 n_format = function(n, decimals = 0) {
   formatC(n,format="f", big.mark=",", digits=decimals)
 }
 
-# Remove commas. (Credit: https://stackoverflow.com/questions/49910861/removing-comma-from-numbers-in-r)
+# Remove commas, return number. Basically the reverse of n_format. (Credit: https://stackoverflow.com/questions/49910861/removing-comma-from-numbers-in-r)
 # --------------------------------------------------------------------------------------------
 comma_n <- function(x){ 
   as.numeric(gsub("\\,", "", x))
@@ -332,7 +338,7 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
 # It does this by committing two supposed cardinal sins of programming: a) interpreting a string (that you pass) as code (for generating the 
 # data behind the ctable() calls); and b) assigning a static global variable - but at least you can specify the name!
 # It returns 3 lists - the knit code to be run, the DTs (list), and the raw table input (with the row_percents() function run on it) (list).
-# Requires the ctable() and row_percents() functions.
+# Requires the ctable() and row_percents() functions. This code was inspired by: https://gist.github.com/StevenMMortimer/e54ec050d97d79996189.
 # Arguments:
 #   ct_code_in_quotes = The literal code that should be used to generate the underlying data tables to be fed into the ctable() calls.
 #   Demos = A vector of all the demographic crosstabulation variables you want to be looped through.
@@ -341,6 +347,14 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
 #   HeadingLvl = How many #'s to include as part of the rendered tabsets.
 #   output = Set to TRUE to have the output returned by the function call.
 #   assign = String to name the variable assignment for the output; set to NULL to disable.
+#
+# The code includes an annoying message to remind you of some things. Namely, it wants you to know that the output from the function 
+# is actually "knit code" that needs to be rendered using a knit(text) command. You also need to ensure you end the tabset 
+# (that the code creates) after you render this. Here's what the message looks like:
+# --- To preview the output, paste and run the following:
+# for (i in 1:length(ct.dt.out[['dt']])) {print(ct.dt.out[['dt']][[i]])}
+# --- Include knit command *in-text* below for rendering (remember to end the tabset):
+# `r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\\n')`"
 # ------------------------------------------------------------------------------------------------------------
 ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL, HeadingLvl = 4, output = FALSE, assign = "ct.dt.out") {
   if (is.null(Params)) Params = rep("", length(Demos))
@@ -358,7 +372,7 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
     knit_expanded <- paste0("\n\n", paste0(rep("#", HeadingLvl), collapse = "")," ", Tabs[i], " {-}\n\n```{r results='asis', echo=FALSE, message=FALSE, warning=FALSE}\n\nct.dt.out[['dt']][[", i, "]]\n\n```\n\n&nbsp;\n\n") # Make the knit statement
     out = c(out, knit_expanded) # Append so as to create a vector.
   }
-  message("\n--- To preview the output, paste and run the following:\nfor (i in 1:length(ct.dt.out[['dt']])) {print(ct.dt.out[['dt']][[i]])}\n\nInclude knit command in-text below for rendering (remember to end the tabset):\n`r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\\n')`")
+  message("\n--- To preview the output, paste and run the following:\nfor (i in 1:length(ct.dt.out[['dt']])) {print(ct.dt.out[['dt']][[i]])}\n--- Include knit command *in-text* below for rendering (remember to end the tabset):\n`r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\\n')`")
   ctabs = list(out, output_dt, output_raw)
   names(ctabs) = c("knit_code", "dt", "raw")
   if (!is.null(assign)) {
