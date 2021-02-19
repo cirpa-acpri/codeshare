@@ -177,32 +177,15 @@ ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Qu
   return(Output)
 }  
   
-  
-  
-  
-#   if (sort == TRUE) {
-#     x = Output
-#     a = x[,1]
-#     b = x[,2:ncol(x)]
-#     b = b[,rev(order(b[1,]))]
-#     Output = bind_cols(a, b)
-#   }
-#   return(Output)
-# }
-
-
-
-
-
 # Row Percents
 # ------------------------------------------------------------------------------------------------------------
-# Transforms a frequency table input to row percentages. Remember ct() above does most of this.
+# Transforms a frequency table input to row percentages. Remember ct() above can also do this.
 # Arguments:
-#   Col1Label = Whether the first column is the categories. Set to FALSE if not. 
-#   count = Whether you want a count column maintained - either as column 1, or column 2 if Col1Label = TRUE.
+#   Col1Cats = Whether the first column is the categories. Set to FALSE if not. 
+#   count = Whether you want a count column maintained - either as column 1, or column 2 if Col1Cats = TRUE.
 # ------------------------------------------------------------------------------------------------------------
-row_percents = function(df, Col1Label = TRUE, count = FALSE) {
-  if (Col1Label == FALSE) {
+row_percents = function(df, Col1Cats = TRUE, count = FALSE) {
+  if (Col1Cats == FALSE) {
     df = df %>% 
       rowid_to_column()
   }
@@ -219,16 +202,31 @@ row_percents = function(df, Col1Label = TRUE, count = FALSE) {
     mutate(pct = val/sum(val, na.rm = TRUE)) %>%
     select(1:2,4) %>% 
     pivot_wider(names_from = cat, values_from = pct)
-  if (Col1Label == FALSE) {
+  if (Col1Cats == FALSE) {
     df = df %>% 
       .[,-1]
   }
   if (count == TRUE) {
     df = bind_cols(df, temp_counts) %>% 
-      { if (Col1Label == FALSE) .[,c(ncol(.), 1:(ncol(.)-1))] else .[,c(1,ncol(.),2:(ncol(.)-1))] }
+      { if (Col1Cats == FALSE) .[,c(ncol(.), 1:(ncol(.)-1))] else .[,c(1,ncol(.),2:(ncol(.)-1))] }
   }
   return(ungroup(df))
 }
+
+# Column Percents
+# ------------------------------------------------------------------------------------------------------------
+# Transforms a frequency table input to column percentages.
+# Arguments:
+#   Col1Cats = Whether the first column is the categories. Set to FALSE if not. 
+# ------------------------------------------------------------------------------------------------------------
+col_percents = function(df, Col1Cats = TRUE) {
+  if (Col1Cats == TRUE) {
+    mutate(df, across(.cols = -1,  ~ ./sum(.)))
+  } else {
+    mutate(df, across(.cols = everything(), ~ ./sum(.)))
+  }
+}
+
 
 # (C)rosstabulation (Table) Rendering
 # ------------------------------------------------------------------------------------------------------------
