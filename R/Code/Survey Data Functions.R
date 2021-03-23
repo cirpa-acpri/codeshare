@@ -48,7 +48,7 @@ pct_n = function(value) {
 # Comma-Number Formatting
 # --------------------------------------------------------------------------------------------
 n_format = function(n, decimals = 0) {
-  formatC(n,format="f", big.mark=",", digits=decimals)
+  ifelse(!is.na(n), formatC(n,format="f", big.mark=",", digits=decimals), n)
 }
 
 # Remove commas, return number. Basically the reverse of n_format. (Credit: https://stackoverflow.com/questions/49910861/removing-comma-from-numbers-in-r)
@@ -70,11 +70,27 @@ wrap.labels <- function(x, len) {
   }
 }
 
-# Set values - so I can adjust labels while still in a pipe.
+# Copy a dataframe to paste in Excel (Credit: https://stackoverflow.com/questions/24704344/copy-an-r-data-frame-to-an-excel-spreadsheet)
+# ---------------------------------------------------------------------
+# Because copying out of an R dataframe in to Excel is, for reasons beyond my comprehension, not built-in.
+# ---------------------------------------------------------------------
+cb <- function(df, sep="\t", dec=".", max.size=(200*1000)) {
+  write.table(df, paste0("clipboard-", formatC(max.size, format="f", digits=0)), sep=sep, row.names=FALSE, dec=dec)
+}
+
+# Paste a table you just copied in Excel into R (Credit: https://www.youtube.com/watch?v=4Y_UhaZj-5I)
+# ---------------------------------------------------------------------
+# As above, this should be built-in... Example usage: 1) Copy data with headers in Excel. 2) data = r.cb()
+# ---------------------------------------------------------------------
+r.cb = function(sep="\t", header=TRUE) {
+  read.table("clipboard", sep=sep, header=header)  
+}
+
+# Set values - so I can adjust labels or values while still in a pipe.
 # --------------------------------------------------------------------------------------------
 set = function(df, r, c, value) {
   df[r, c] = value
-  ungroup(df)
+  ungroup(df) # This is basically because occasionally the output comes back grouped? No idea why.
   return(df)
 }
 
@@ -103,6 +119,7 @@ ftw = function(df, Question_var_in_Quotes, Weight_var_in_Quotes = NULL, count_ro
 # (C)ross (T)abulation
 # --------------------------------------------------------------------------------------------
 # Creates a simple crosstab count table from two variables.
+# Arguments:
 #   Weight_var_in_Quotes = Specific weighting variable, optional.
 #   pct = Set to TRUE to change output to row percentages
 #   count = Set to TRUE to return a total N for each row - usually only used in conjunction with pct.
@@ -172,10 +189,10 @@ ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Qu
     Output = bind_cols(a, b)
     return(Output)
   } else if (length(sort) > 1) {
-    return( Output[,c(Row_Demo_quoted,sort)])
+    return(Output[,c(Row_Demo_quoted,sort)])
   }
   return(Output)
-}  
+}
   
 # Row Percents
 # ------------------------------------------------------------------------------------------------------------
@@ -221,9 +238,9 @@ row_percents = function(df, Col1Cats = TRUE, count = FALSE) {
 # ------------------------------------------------------------------------------------------------------------
 col_percents = function(df, Col1Cats = TRUE) {
   if (Col1Cats == TRUE) {
-    mutate(df, across(.cols = -1,  ~ ./sum(.)))
+    mutate(df, across(.cols = -1,  ~ ./sum(., na.rm = TRUE)))
   } else {
-    mutate(df, across(.cols = everything(), ~ ./sum(.)))
+    mutate(df, across(.cols = everything(), ~ ./sum(., na.rm = TRUE)))
   }
 }
 
@@ -233,11 +250,12 @@ col_percents = function(df, Col1Cats = TRUE) {
 # Renders output from the ct function above, optionally with chi-square test (if supplied frequency counts).
 # Arguments:
 #   Col1Name = Name of the table's 1st column - typically the demo / category title
-#   Col1Width = How wide should the first column (categories) be? (Eg. "30%", "100px") Especially in relation to...
-#   OtherColWidths = How wide should the other columns be? Adjusting these allows you to fit more or less in the table nicely. 
+#   Col1Width = How wide should the first column (categories) be? Especially in relation to...
+#   OtherColWidths = How wide should the other columns be? Adjusting these allows you to fit more or less in the table nicely.
 #   chi2 = Toggle the chi2 test and colouring in the table (TRUE vs. FALSE)
 #   freq = Toggle reporting the results as the raw counts, rather than making them into row percentages (T/F)
 #   decimals = Assignment for how many decimals to include in numerical output.
+#   title = Specify a title for the top of your table.
 #   font = Font size for the table container.
 # ------------------------------------------------------------------------------------------------------------
 ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%", chi2 = TRUE, freq = FALSE, decimals = NULL, title = "", font = "15") {
@@ -263,7 +281,8 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
         wtest = chisq.test(data_table)
         wtest$Prop <- prop.table(wtest$observed, 1)
         if (wtest$p.value > 0.05 ) { 
-          wtest$ColFlag = ifelse(wtest$expected >= 5, 9, 9)
+          wtest$ColFlag = 9
+          chi2 = FALSE # Chi-square non-significant, so disable.
         } else {
           wtest$ColFlag <- ifelse(wtest$expected >= 5, 1, 0) * ifelse(wtest$stdres >= 2, 1, ifelse(wtest$stdres <= -2, -1, 0))  
         }
@@ -276,56 +295,68 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
   # Transform to row percentages
   if (freq == FALSE) {
     if (mean(as.vector(rowMeans(df[,-1])), na.rm = TRUE) >= 1.5) {
-      df = df %>% 
-        pivot_longer(cols=2:ncol(.),names_to="cat", values_to = "val") %>% 
-        group_by_at(1) %>% 
-        mutate(pct = val/sum(val, na.rm = TRUE)) %>% 
-        select(1:2,4) %>% 
-        pivot_wider(names_from = cat, values_from = pct)
+      df = df %>% row_percents(count = TRUE)
+      row_totals = df[,2] %>% # Split of the row totals for later
+        set(1, 1, 0)
+      df = df[,c(1,3:ncol(df))]
     } else {
       if (chi2 == TRUE) {
         print("Message: You appear to possibly be running this function on a percentage table. The chi-square colouring will not return effective results. To silence this message, either change your input data to be a frequency table, or disable the chi-square test by using the parameter: 'chi2 = FALSE' in your function call.")
       }
     }
   } else {
+    row_totals = df %>% 
+      transmute(count = rowSums(select(., 2:ncol(.)), na.rm = TRUE)) %>% 
+      set(1, 1, 0)
     freq_n = sum(df[1,-1], na.rm = TRUE)
   }
-  # Rounding if activated [though currently moot due to the rendering... We have to keep them as numbers to get the data bars]
+  # Rounding if activated
   if (!is.null(decimals)) {
     if (freq == FALSE) {
       decimals = decimals + 2
     }
     df = df %>% mutate_at(vars(-1), ~ round(., digits = decimals))
   }
+  # Append row totals
+  df = bind_cols(df, row_totals)
+  max_cat = max(row_totals)
   # Append chi2 formatting
   if (chi2 == TRUE) {
     df = bind_cols(as_tibble(df), rename_all(as_tibble(rbind(rep(10, ncol(wtest[["ColFlag"]])), wtest[["ColFlag"]])), function(x) paste0(x,"_chi")))
   } else {
-    df = bind_cols(as_tibble(df), as_tibble(matrix(10L, nrow = dim(df)[1], ncol = dim(df)[2]-1)))
+    df = bind_cols(as_tibble(df), as_tibble(rbind(matrix(10L, nrow = 1, ncol = dim(df)[2]-2), matrix(9L, nrow = dim(df)[1]-1, ncol = dim(df)[2]-2))))
   }
-  N <-(ncol(df) - 1) / 2 # Number of columns, will be useful for the table render, relating to the dataframe.
-  # The datatable call.
+  N <- (ncol(df) - 2) / 2 # Number of columns, will be useful for the table render, relating to the dataframe.
   CrossTab = datatable(df, class = 'row-border', rownames = FALSE, 
                        caption = htmltools::tags$caption(style = 'caption-side: top; text-align: center; color:black; font-size:150% ;',title),
                        options = list(
                          initComplete = htmlwidgets::JS("function(settings, json) {", paste0("$(this.api().table().container()).css({'font-size': '", paste0(font, "px"), "'});"), "}"), # Source: https://stackoverflow.com/questions/44101055/changing-font-size-in-r-datatables-dt
                          scrollX = FALSE, paging = FALSE, searching = FALSE, dom = 't', ordering = F, autoWidth = TRUE,
-                         columnDefs = list(list(visible=FALSE, targets = (N+1):(2*N)),
+                         columnDefs = list(list(visible=FALSE, targets = (N+1):(2*N+1)),
                                            list(className = 'dt-center', targets = "_all"),
                                            list(width = Col1Width, targets = 0),
                                            list(width = OtherColWidths, targets = 1:N)))) %>%
-    formatStyle(columns = 1, target = "row", # "Overall" row formatting
-                backgroundColor = styleEqual(c("Overall"), c("#337ab7")), 
-                fontWeight = styleEqual("Overall", 'bold'), 
-                color = styleEqual(c("Overall"), c("white"))) %>%
-    formatStyle(2:(N+1), # Data bars
-                background = styleColorBar({if (freq == FALSE) as.integer(0:1) else as.integer(c(0,freq_n))}, "#d4d4d485"),
+    formatStyle(1, target = "row", # "Overall" row formatting
+                backgroundColor = styleEqual("Overall", "#337ab7"),
+                fontWeight = styleEqual("Overall", 'bold'),
+                color = styleEqual("Overall", 'white')) %>%
+    formatStyle(2:(N+1), # Data bars - table values
+                background = styleColorBar({if (freq == FALSE) as.integer(0:1) else as.integer(c(0,freq_n))}, "#d4d4d485", angle = -90),
+                backgroundSize = '98% 80%',
+                backgroundRepeat = 'no-repeat',
+                backgroundPosition = 'left') %>%
+    formatStyle(1, (N+2), # Data bars - 1st column N's
+                background = styleColorBar(as.integer(0:max_cat), "#dfe6f585", angle = -90),
                 backgroundSize = '98% 80%',
                 backgroundRepeat = 'no-repeat',
                 backgroundPosition = 'left') %>%
     formatPercentage(ifelse(freq==FALSE,2,0):ifelse(freq==FALSE,(N+1),0), ifelse(!is.null(decimals),ifelse(freq==FALSE,decimals-2,decimals), 0)) %>% # Percentages
     formatStyle(1:(N+1), border = '1px solid #ddd') %>% 
-    formatStyle(2:(N+1), valueColumns = (N+2):(2*N+1), color = styleEqual(c('-1', '0', '1', '9'), c('#C00000', 'black', '#76933C', '#858585'))) 
+    # Chi2 formatting
+    formatStyle(2:(N+1), 
+                valueColumns = (N+3):(2*N+2), 
+                color = styleEqual(c('-1', '0', '1', '9', '10'), 
+                                   c('#C00000', 'black', '#76933C', '#858585', 'white')))
   return(CrossTab)
 }
 
@@ -367,10 +398,10 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
   names(output_raw) = Demos
   out = NULL # Variable for knit statements
   for (i in 1:length(output_dt)) { # For every DT we have...
-    knit_expanded <- paste0("\n\n", paste0(rep("#", HeadingLvl), collapse = "")," ", Tabs[i], " {-}\n\n```{r results='asis', echo=FALSE, message=FALSE, warning=FALSE}\n\nct.dt.out[['dt']][[", i, "]]\n\n```\n\n&nbsp;\n\n") # Make the knit statement
+    knit_expanded <- paste0("\n\n", paste0(rep("#", HeadingLvl), collapse = "")," ", Tabs[i], " {-}\n\n```{r results='asis', echo=FALSE, message=FALSE, warning=FALSE}\n\n",assign,"[['dt']][[", i, "]]\n\n```\n\n&nbsp;\n\n") # Make the knit statement
     out = c(out, knit_expanded) # Append so as to create a vector.
   }
-  message("\n--- To preview the output, paste and run the following:\nfor (i in 1:length(ct.dt.out[['dt']])) {print(ct.dt.out[['dt']][[i]])}\n--- Include knit command *in-text* below for rendering (remember to end the tabset):\n`r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\\n')`")
+  message("\n--- To preview the output, paste and run the following:\nfor (i in 1:length(",assign,"[['dt']])) {print(",assign,"[['dt']][[i]])}\n--- Include knit command *in-text* below for rendering (remember to end the tabset):\n`r paste(knit(text = ",assign,"[['knit_code']]), collapse = '\\n')`")
   ctabs = list(out, output_dt, output_raw)
   names(ctabs) = c("knit_code", "dt", "raw")
   if (!is.null(assign)) {
@@ -470,7 +501,7 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
     temp = select(df, Weight_var_in_Quotes, Demo_in_quotes)
   }
   bind_cols(temp, MultiCoding(df, Question_in_quotes, label = "")[Item_from_Q_in_quotes]) %>%
-    ct(2, 3, 1) %>%
+    ct(2, 3, 1, sort = FALSE) %>%
     rename(!!label_0 := 2, !!label_1 := 3, !!Demo_in_quotes := 1) %>%
     .[,c(1,3,2)]
 }
@@ -532,12 +563,11 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
   return(temp)
 }
 
-
 # (Fr)e(q)uency (G)raph, (Simple)
 # --------------------------------------------------------------------------------------------
 # Makes a simple horizontal bar graph.
 # Function Dependencies: wrap.labels, pct_format
-# Requires a frequency table with dimensions: "resp" [category], "pct" [decimal]
+# Requires a frequency table with dimensions: "resp" [category], and either "count" or "pct" [n, decimal]
 # Arguments:
 #   Title_in_Quotes = Title of the graph
 #   Title_wrap_length = How long the text of the title should be allowed to run before spilling to a new line. Uses the function dependency.
@@ -546,21 +576,29 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
 #   Cat_wrap_length = How long should the categories on the bars run before they spill to a new line?
 #   Cat_font_size = Font size for categories on the bars
 #   Custom_N = Specify a custom N to appear in the subtitle
-#   Cat_pcts = If you want the graph to be of counts (not percentages), put your counts into the "pct" column and set the option Cat_pct = FALSE.
+#   subtitle = Specify a custom subtitle - overrides Custom_N
+#   scale = Set to "pct" (default) for percentages, "count" or specify a max number for counts. (Don't over-exceed the highest count by much or the last gridline won't display.)
 #   decimals = Number of decimals to include for percentage rounding.
 #   pos = function for positioning text labels. Eg. position_nudge(x = 0, y = 0.05)
 # --------------------------------------------------------------------------------------------
-frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, Cat_pcts = TRUE, decimals = 0, colour = "#6baed6", pos = position_stack(vjust = 0.9)) {
+frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, subtitle = NULL, scale = "pct", decimals = 0, colour = "#6baed6", pos = position_stack(vjust = 0.9)) {
   df = df %>%  
-    mutate(resp = wrap.labels(resp, Cat_wrap_length)) 
+    mutate(resp = wrap.labels(resp, Cat_wrap_length))
+  if(!"pct" %in% colnames(df)) {
+    df = df %>% mutate(pct = count / sum(count, na.rm = TRUE))
+  }
   df %>% 
-    ggplot(aes(x=resp, y=pct)) +
+    ggplot(aes(x=resp, y={if (scale == "pct") pct else count})) +
     geom_bar(stat = 'identity', fill = colour) + 
     xlim(rev(df$resp)) + 
-    geom_text(aes(label = {if (Cat_pcts == TRUE) pct_format(pct, decimals) else pct}), size = Value_font_size, position = pos) +
+    geom_text(aes(label = {if (scale == "pct") pct_format(pct, decimals) else n_format(count)}), size = Value_font_size, position = pos) +
     coord_flip() +
-    {if (Cat_pcts == TRUE) scale_y_continuous(labels = scales::percent_format(accuracy = 1)) else scale_y_continuous(breaks = unname(round(quantile(c(0,max(df$pct))), 0)), labels = unname(round(quantile(c(0,max(df$pct))), 0)))} + 
-    patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), subtitle = ifelse(is.null(Custom_N), paste0("N = ",formatC(sum(df$count),format="f", big.mark=",", digits=0)), ifelse(Custom_N == FALSE, "", paste0("N = ",formatC(Custom_N,format="f", big.mark=",", digits=0)))), theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,5,0)))) +
+    {if (scale == "pct") scale_y_continuous(labels = scales::percent_format(accuracy = 1)) else scale_y_continuous(breaks = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count), scale))))), labels = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count), scale))))))} + 
+    patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), 
+                               subtitle = ifelse(!is.null(subtitle), subtitle,
+                                                 ifelse(is.null(Custom_N), paste0("N = ",formatC(sum(df$count),format="f", big.mark=",", digits=0)),
+                                                        ifelse(Custom_N == FALSE, "", paste0("N = ",formatC(Custom_N,format="f", big.mark=",", digits=0))))), 
+                               theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,5,0)))) +
     theme(
       legend.title = element_blank(),
       axis.title.y = element_blank(),
@@ -568,7 +606,8 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
       text = element_text(size = Cat_font_size), 
       panel.background = element_blank(),
       panel.grid.major.x = element_line(colour ="grey"),
-      axis.ticks = element_blank())
+      axis.ticks = element_blank()
+    )
 }
 
 # (Fr)e(q)uency (G)raph, (Battery)
@@ -577,7 +616,7 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 # Function Dependencies: wrap.labels
 # Required input: a frequency table with dimensions: "resp" [category], "count" [n], and a column with the percentages [decimals] for each response option, properly labelled with the complete response text.
 # Arguments:
-#   N_mode = Specify the mode to display N values in the graph. Can be either (t)itle or (c)ategory. FALSE disables N's.
+#   N_mode = Specify the mode to display N values in the graph. Can be either ("t")itle or ("c")ategory. FALSE disables N's.
 #   subtitle = Manually specify subtitle content. Overrides N_mode.
 #   Fcolour = R palette being used.
 #   colours = Allows you to specify a vector [c()] of colours (labels or hex) to be displayed (left to right) in the graph. Ensure you have as many colours as there are legend categories.
@@ -588,7 +627,7 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 #   Legend_Padding = Play with to adjust the spacing of the legend on the graph.
 #   decimals = Number of decimals to include for percentage rounding.
 # --------------------------------------------------------------------------------------------
-frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Rows = 2, Legend_Padding = 100, subtitle = NULL, Fcolour = "Blues", colours = NULL) { 
+frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Rows = 2, Legend_Padding = 100, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = NULL) { 
   if (N_mode == "t") N = paste0(formatC(min(df$count),format="f", big.mark=",", digits=0)," - ",formatC(max(df$count),format="f", big.mark=",", digits=0)) else N = ""
   if (N_mode == "c") df = df %>% mutate(df, resp = paste0(df$resp, " (N=",count,")"))
   df = df %>% 
@@ -602,7 +641,7 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
     pivot_longer(cols=-Question, names_to="Response", values_to = "pct")
   Table %>% 
     ggplot(aes(x=Question, y=pct, fill=factor(Response, levels = rev(FillOrder)))) + 
-    geom_bar(stat = 'identity') +
+    {if (is.null(border)) geom_bar(stat = 'identity') else geom_bar(stat = 'identity', color = border) } +
     geom_text(aes(label = ifelse(pct>=0.045,sprintf(paste0("%.", decimals, "f%%"), (pct*100)),"")), size = Label_font_size, position = position_stack(vjust = 0.5)) +
     coord_flip() +
     scale_x_discrete(limits=rev(Qlabels)) +
