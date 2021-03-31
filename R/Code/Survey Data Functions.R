@@ -3,7 +3,7 @@
 # For working with data and surveys from Qualtrics
 
 # By: Fraser Hay, Conestoga College
-# With almost all things stolen from: MARK KANE!!!, Conestoga College
+# With some things stolen from: Mark Kane, Conestoga College
 # --------------------------------------------------------------------------------------------
 
 # These functions are probably inefficiently coded, but they seem to work. They also save me a lot of time.
@@ -87,6 +87,8 @@ r.cb = function(sep="\t", header=TRUE) {
 }
 
 # Set values - so I can adjust labels or values while still in a pipe.
+# --------------------------------------------------------------------------------------------
+# Useful programmatic example: set(which(data$student_fee == "Regular"), 2, "Domestic")
 # --------------------------------------------------------------------------------------------
 set = function(df, r, c, value) {
   df[r, c] = value
