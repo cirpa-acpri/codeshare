@@ -29,6 +29,7 @@ library(tidyverse)
 library(knitr)
 library(readxl)
 library(DT)
+library(patchwork)
 
 # Suppress that "groups" warning from the summarize() function.
 options(dplyr.summarise.inform=F)
@@ -82,7 +83,7 @@ cb <- function(df, sep="\t", dec=".", max.size=(200*1000)) {
 # ---------------------------------------------------------------------
 # As above, this should be built-in... Example usage: 1) Copy data with headers in Excel. 2) data = r.cb()
 # ---------------------------------------------------------------------
-r.cb = function(sep="\t", header=TRUE) {
+cb.read = function(sep="\t", header=TRUE) {
   read.table("clipboard", sep=sep, header=header)  
 }
 
@@ -127,13 +128,14 @@ ftw = function(df, Question_var_in_Quotes, Weight_var_in_Quotes = NULL, count_ro
 #   count = Set to TRUE to return a total N for each row - usually only used in conjunction with pct.
 #   decimals = Specify an integer to round to that many places
 #   include_N = Adds an "N" column with row totals.
-#   sort = Set to TRUE to return the columns ordered highest (n) to lowest.
+#   sort = Either set to TRUE to return the columns ordered highest (n) to lowest, or specify a label vector for the ordering.
 # --------------------------------------------------------------------------------------------
 ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE) {
   Data = dataset %>% 
     { if (is.null(Weight_var_in_Quotes)) select(., Column_Question_quoted, Row_Demo_quoted) else select(., Column_Question_quoted, Row_Demo_quoted, Weight_var_in_Quotes) } %>%
     rename(Response = 1, Field = 2) %>% 
     { if (is.null(Weight_var_in_Quotes)) mutate(., weight = 1) else rename(., weight = 3) }
+  if ("list" %in% sapply(data, class)) message("Caution: The function can run into problems with non-traditional data types.")
   CrossTab = Data %>% 
     group_by(Field, Response) %>% 
     drop_na %>%
@@ -182,15 +184,15 @@ ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Qu
   if (!is.null(decimals)) {
     Output = Output %>% mutate_at(vars(-1), ~ round(., digits = decimals))
   }
-  
+  # Sort, if activated
   if (all(sort == TRUE)) {
     x = Output
-    a = x[,1]
-    b = x[,2:ncol(x)]
+    a = x[,1] # Pop-off the top
+    b = x[,2:ncol(x)] # Sort the rest
     b = b[,rev(order(b[1,]))]
-    Output = bind_cols(a, b)
+    Output = bind_cols(a, b) # Recombine
     return(Output)
-  } else if (length(sort) > 1) {
+  } else if (length(sort) > 1) { # If a vector is provided, sort the output by the vector.
     return(Output[,c(Row_Demo_quoted,sort)])
   }
   return(Output)
@@ -298,7 +300,7 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
   if (freq == FALSE) {
     if (mean(as.vector(rowMeans(df[,-1])), na.rm = TRUE) >= 1.5) {
       df = df %>% row_percents(count = TRUE)
-      row_totals = df[,2] %>% # Split of the row totals for later
+      row_totals = df[,2] %>% # Split off the row totals for later
         set(1, 1, 0)
       df = df[,c(1,3:ncol(df))]
     } else {
@@ -630,6 +632,7 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 #   decimals = Number of decimals to include for percentage rounding.
 # --------------------------------------------------------------------------------------------
 frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Rows = 2, Legend_Padding = 100, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = NULL) { 
+  if("try-error" %in% class(try(select(df, count, resp), silent = TRUE))) stop('This function requires a dataframe with columns "resp" (categories) and "count" (n). Supplied dataframe is incomplete.')
   if (N_mode == "t") N = paste0(formatC(min(df$count),format="f", big.mark=",", digits=0)," - ",formatC(max(df$count),format="f", big.mark=",", digits=0)) else N = ""
   if (N_mode == "c") df = df %>% mutate(df, resp = paste0(df$resp, " (N=",count,")"))
   df = df %>% 
