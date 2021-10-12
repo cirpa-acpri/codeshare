@@ -26,8 +26,6 @@
 
 # Gotta have some libraries...
 library(tidyverse)
-library(knitr)
-library(readxl)
 library(DT)
 library(patchwork)
 
@@ -40,22 +38,17 @@ pct_format = function(value, decimals = 0) {
   ifelse(!is.na(value), sprintf(paste0("%.", decimals, "f%%"), (value * 100)), NA)
 }
 
-# Remove percent, return number. Basically the reverse of pct_format.
-# --------------------------------------------------------------------------------------------
-pct_n = function(value) {
-  ifelse(!is.na(value), as.numeric(gsub("\\%", "", value)) / 100, NA)
-}
-
 # Comma-Number Formatting
 # --------------------------------------------------------------------------------------------
 n_format = function(n, decimals = 0) {
   ifelse(!is.na(n), formatC(n,format="f", big.mark=",", digits=decimals), n)
 }
 
-# Remove commas, return number. Basically the reverse of n_format. (Credit: https://stackoverflow.com/questions/49910861/removing-comma-from-numbers-in-r)
+# Value -- Remove commas / percents, return value. Basically the reverse of pct_format / n_format.
 # --------------------------------------------------------------------------------------------
-comma_n <- function(x){ 
-  as.numeric(gsub("\\,", "", x))
+value = function(x) {
+  x = as.character(x)
+  ifelse(grepl("%", x, fixed = TRUE), parse_number(x) / 100, parse_number(x))
 }
 
 # Label Wrapping (Credit: https://stackoverflow.com/questions/20241065/r-barplot-wrapping-long-text-labels) 
@@ -144,7 +137,7 @@ ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Qu
     pivot_wider(names_from = Response, values_from = count, names_prefix = "cnt_") 
   if (include_N == TRUE) {
     CrossTab = CrossTab %>% 
-      mutate(N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE)), Field = paste0( Field," (N = ",N,")" ))
+      mutate(N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE)), Field = paste0( Field," (N = ",n_format(N),")" ))
   } 
   CrossTab = select(CrossTab, Field, starts_with("cnt_")) 
   names(CrossTab) = str_replace(names(CrossTab), "cnt_", "")
@@ -187,9 +180,9 @@ ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Qu
   # Sort, if activated
   if (all(sort == TRUE)) {
     x = Output
-    a = x[,1] # Pop-off the top
-    b = x[,2:ncol(x)] # Sort the rest
-    b = b[,rev(order(b[1,]))]
+    a = x[,1] # Pop-off the 'top'
+    b = x[,2:ncol(x)] # Grab the rest
+    b = b[,rev(sort(as.numeric(as.vector(b[1,])), index.return = TRUE)$ix)] # Sort the columns for the rest based on the overall. NOTES: obviously this is line is more complicated than that from the previous iteration (b = b[,rev(order(b[1,]))]), however since early 2021 I was getting an annoying warning message - "In xtfrm.data.frame(x) : cannot xtfrm data frames". Apparently the original approach is simply not recommended anymore. https://win-vector.com/2021/02/07/it-has-always-been-wrong-to-call-order-on-a-data-frame/
     Output = bind_cols(a, b) # Recombine
     return(Output)
   } else if (length(sort) > 1) { # If a vector is provided, sort the output by the vector.
@@ -197,7 +190,7 @@ ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Qu
   }
   return(Output)
 }
-  
+
 # Row Percents
 # ------------------------------------------------------------------------------------------------------------
 # Transforms a frequency table input to row percentages. Remember ct() above can also do this.
@@ -283,7 +276,13 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
         rownames(data_table) = data[[1]]
         # Chi-square test
         wtest = chisq.test(data_table)
-        wtest$Prop <- prop.table(wtest$observed, 1)
+        # First we must check as to whether there's only one column, which would cause an error.
+        if("try-error" %in% class(try(wtest$Prop <- prop.table(wtest$observed, 1), silent = TRUE))) {
+          message("Message: Dataframe supplied only contains one column of data. Without co-variates, chi2 results cannot be returned. Disabling chi-square test results colouring.")
+          chi2 = FALSE # Described above.
+        } else { # Cleared for take-off...
+          wtest$Prop <- prop.table(wtest$observed, 1)  
+        }
         if (wtest$p.value > 0.05 ) { 
           wtest$ColFlag = 9
           chi2 = FALSE # Chi-square non-significant, so disable.
@@ -354,7 +353,8 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
                 backgroundSize = '98% 80%',
                 backgroundRepeat = 'no-repeat',
                 backgroundPosition = 'left') %>%
-    formatPercentage(ifelse(freq==FALSE,2,0):ifelse(freq==FALSE,(N+1),0), ifelse(!is.null(decimals),ifelse(freq==FALSE,decimals-2,decimals), 0)) %>% # Percentages
+    formatPercentage(ifelse(freq==FALSE,2,0):ifelse(freq==FALSE,(N+1),0), ifelse(!is.null(decimals),decimals-2, 0)) %>% # Percentages
+    formatRound(ifelse(freq==TRUE,2,0):ifelse(freq==TRUE,(N+1),0), ifelse(!is.null(decimals),decimals, 0)) %>% # Frequency decimals
     formatStyle(1:(N+1), border = '1px solid #ddd') %>% 
     # Chi2 formatting
     formatStyle(2:(N+1), 
@@ -521,7 +521,7 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
 #   Weight_var_in_Quotes = Weighting variable. Required.
 #   freq = Set to TRUE to return frequency counts instead of row percents (default, FALSE)
 #   round_freq = Round frequencies / counts to integers
-#   Questions_df = Specify your "Questions" dataset. If you don't have a "Questions" dataset, set to NULL - this will skip looking up the category text.
+#   Questions_df = Specify your "Questions" dataset. If you don't have a "Questions" dataset, set to NULL or FALSE - this will skip looking up the category text.
 #     > Questions is supposed to be a dataframe with the following columns (In Qualtrics output, this is the first two rows of an excel export):
 #       + Q = The column name in the reference dataset
 #       + Text = The actual question text
@@ -555,7 +555,7 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
     temp = temp %>% 
       pivot_wider(names_from = resp, values_from = count)
   } 
-  if (is.null(Questions_df)) {
+  if (is.null(Questions_df) || Questions_df == FALSE) {
     temp = temp %>% 
       rename(resp = 1)
   } else {
@@ -581,7 +581,7 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
 #   Cat_font_size = Font size for categories on the bars
 #   Custom_N = Specify a custom N to appear in the subtitle
 #   subtitle = Specify a custom subtitle - overrides Custom_N
-#   scale = Set to "pct" (default) for percentages, "count" or specify a max number for counts. (Don't over-exceed the highest count by much or the last gridline won't display.)
+#   scale = Set to "pct" (default) for percentages, "count" or specify a max number for counts. (The graph will only display 4 gridlines + 0. Your scale typically needs to be cleanly divisable by 4 for gridlines to not look awkward. Don't over-exceed the highest count by much or the last gridline won't display.)
 #   decimals = Number of decimals to include for percentage rounding.
 #   pos = function for positioning text labels. Eg. position_nudge(x = 0, y = 0.05)
 # --------------------------------------------------------------------------------------------
@@ -595,7 +595,7 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
     ggplot(aes(x=resp, y={if (scale == "pct") pct else count})) +
     geom_bar(stat = 'identity', fill = colour) + 
     xlim(rev(df$resp)) + 
-    geom_text(aes(label = {if (scale == "pct") pct_format(pct, decimals) else n_format(count)}), size = Value_font_size, position = pos) +
+    geom_text(aes(label = {if (scale == "pct") pct_format(pct, decimals) else n_format(count, decimals)}), size = Value_font_size, position = pos) +
     coord_flip() +
     {if (scale == "pct") scale_y_continuous(labels = scales::percent_format(accuracy = 1)) else scale_y_continuous(breaks = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count), scale))))), labels = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count), scale))))))} + 
     patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), 
@@ -666,4 +666,30 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
           panel.background = element_blank(),
           panel.grid.major.x = element_line(colour = "grey"),
           axis.ticks = element_blank())
+}
+
+
+
+
+
+
+
+
+
+# --------------------------------------------------------------------------------------------
+# DEPRECIATED BUT KEPT FOR CONSISTENCY'S SAKE
+# --------------------------------------------------------------------------------------------
+# And so my old stuff doesn't break...
+# --------------------------------------------------------------------------------------------
+
+# Remove percent, return number. Basically the reverse of pct_format.
+# --------------------------------------------------------------------------------------------
+pct_n = function(value) {
+  parse_number(value) / 100
+}
+
+# Remove commas, return number. Basically the reverse of n_format. (Credit: https://stackoverflow.com/questions/49910861/removing-comma-from-numbers-in-r)
+# --------------------------------------------------------------------------------------------
+comma_n <- function(value) { 
+  parse_number(value)
 }
