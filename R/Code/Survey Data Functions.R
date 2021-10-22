@@ -583,9 +583,11 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
 #   subtitle = Specify a custom subtitle - overrides Custom_N
 #   scale = Set to "pct" (default) for percentages, "count" or specify a max number for counts. (The graph will only display 4 gridlines + 0. Your scale typically needs to be cleanly divisable by 4 for gridlines to not look awkward. Don't over-exceed the highest count by much or the last gridline won't display.)
 #   decimals = Number of decimals to include for percentage rounding.
-#   pos = function for positioning text labels. Eg. position_nudge(x = 0, y = 0.05)
+#   pos = Function for positioning text labels. Eg. position_nudge(x = 0, y = 0.05)
+#   border = The colour you want the border to be, if applicable.
+#   width = How thick do you want the bars? (In %, basically.)
 # --------------------------------------------------------------------------------------------
-frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, subtitle = NULL, scale = "pct", decimals = 0, colour = "#6baed6", pos = position_stack(vjust = 0.9)) {
+frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, subtitle = NULL, scale = "pct", decimals = 0, colour = "#6baed6", pos = position_stack(vjust = 0.9), border = NULL, width = 0.8) {
   df = df %>%  
     mutate(resp = wrap.labels(resp, Cat_wrap_length))
   if(!"pct" %in% colnames(df)) {
@@ -593,14 +595,14 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
   }
   df %>% 
     ggplot(aes(x=resp, y={if (scale == "pct") pct else count})) +
-    geom_bar(stat = 'identity', fill = colour) + 
+    geom_bar(stat = 'identity', fill = colour, color = ifelse(is.null(border), "#ffffff00", border), width = width) + 
     xlim(rev(df$resp)) + 
     geom_text(aes(label = {if (scale == "pct") pct_format(pct, decimals) else n_format(count, decimals)}), size = Value_font_size, position = pos) +
     coord_flip() +
-    {if (scale == "pct") scale_y_continuous(labels = scales::percent_format(accuracy = 1)) else scale_y_continuous(breaks = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count), scale))))), labels = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count), scale))))))} + 
+    {if (scale == "pct") scale_y_continuous(labels = scales::percent_format(accuracy = 1)) else scale_y_continuous(breaks = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count, na.rm = TRUE), scale))))), labels = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count, na.rm = TRUE), scale))))))} + 
     patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), 
                                subtitle = ifelse(!is.null(subtitle), subtitle,
-                                                 ifelse(is.null(Custom_N), paste0("N = ",formatC(sum(df$count),format="f", big.mark=",", digits=0)),
+                                                 ifelse(is.null(Custom_N), paste0("N = ",formatC(sum(df$count, na.rm = TRUE),format="f", big.mark=",", digits=0)),
                                                         ifelse(Custom_N == FALSE, "", paste0("N = ",formatC(Custom_N,format="f", big.mark=",", digits=0))))), 
                                theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,5,0)))) +
     theme(
@@ -627,11 +629,14 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 #   Cat_font_size / Cat_wrap_length = Refer to categories (items on the left, not percentages).
 #   Label_font_size = Font size of the percentage labels.
 #   YRightMargin = Margin between categories and bars.
+#   Legend_Font = Legend font size
 #   Legend_Rows = Number of rows in the legend.
 #   Legend_Padding = Play with to adjust the spacing of the legend on the graph.
+#   Legend_Preserve = If your graph has empty (NA) columns, by setting NA's to 0's, this preserves the categories in the legend from being dropped if they have no data.
 #   decimals = Number of decimals to include for percentage rounding.
+#   border = Set a single border colour for all categories / bars in the stack.
 # --------------------------------------------------------------------------------------------
-frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Rows = 2, Legend_Padding = 100, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = NULL) { 
+frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = NULL, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = NULL) { 
   if("try-error" %in% class(try(select(df, count, resp), silent = TRUE))) stop('This function requires a dataframe with columns "resp" (categories) and "count" (n). Supplied dataframe is incomplete.')
   if (N_mode == "t") N = paste0(formatC(min(df$count),format="f", big.mark=",", digits=0)," - ",formatC(max(df$count),format="f", big.mark=",", digits=0)) else N = ""
   if (N_mode == "c") df = df %>% mutate(df, resp = paste0(df$resp, " (N=",count,")"))
@@ -644,6 +649,7 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
   FillOrder = names(df[,-c(1)])
   Table = df %>% 
     pivot_longer(cols=-Question, names_to="Response", values_to = "pct")
+  {if (! is.null(Legend_Preserve)) Table[is.na(Table)] = 0}
   Table %>% 
     ggplot(aes(x=Question, y=pct, fill=factor(Response, levels = rev(FillOrder)))) + 
     {if (is.null(border)) geom_bar(stat = 'identity') else geom_bar(stat = 'identity', color = border) } +
@@ -656,7 +662,7 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
     patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), subtitle=ifelse(!is.null(subtitle), subtitle, ifelse(N_mode == "t", paste0("N = ",N), "")), theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,ifelse(any(!is.null(subtitle) | N_mode == "t"),5,-10),0)))) +
     theme(legend.position="bottom",
           legend.title = element_blank(),
-          legend.text = element_text(size = 11),
+          legend.text = element_text(size = Legend_Font),
           legend.margin = margin(5, 0, 5, (Legend_Padding * -1)),
           axis.title.y = element_blank(),
           axis.title.x = element_blank(),

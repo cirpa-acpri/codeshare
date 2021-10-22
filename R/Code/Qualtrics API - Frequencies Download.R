@@ -23,7 +23,7 @@ devtools::source_url("https://github.com/cirpa-acpri/codeshare/blob/master/R/Cod
 # **************************************************************************************************************************
 # Define our access variables --- *** ENTER YOUR REFERENCE FILE BELOW ***
 # **************************************************************************************************************************
-temp = file("C:/Users/fhay/Dropbox/Python/Qualtrics API - R.txt", "r")  # Open the file for reading. This is where I keep my variables, because I don't want to put them in my script. It's basically a password, so storing it in here I think is bad form.
+temp = file("C:/Users/Fraser/Dropbox/Python/Qualtrics API - R.txt", "r")  # Open the file for reading. This is where I keep my variables, because I don't want to put them in my script. It's basically a password, so storing it in here I think is bad form.
 url = readLines(temp, n = 1, encoding = "UTF-8") # Read the top line
 key = readLines(temp, n = 2, encoding = "UTF-8") %>% # Read the next line
   .[1] # But filter it just cuz.
