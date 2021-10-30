@@ -564,7 +564,7 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
       .[,-1] %>% 
       select(resp, everything())
   }
-  return(temp)
+  return(ungroup(temp))
 }
 
 # (Fr)e(q)uency (G)raph, (Simple)
@@ -632,14 +632,20 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 #   Legend_Font = Legend font size
 #   Legend_Rows = Number of rows in the legend.
 #   Legend_Padding = Play with to adjust the spacing of the legend on the graph.
-#   Legend_Preserve = If your graph has empty (NA) columns, by setting NA's to 0's, this preserves the categories in the legend from being dropped if they have no data.
+#   Legend_Preserve = TRUE; If your graph has empty (NA) columns, by setting NA's to 0's, this preserves the categories in the legend from being dropped if they have no data. Disable by setting to NULL.
 #   decimals = Number of decimals to include for percentage rounding.
 #   border = Set a single border colour for all categories / bars in the stack.
 # --------------------------------------------------------------------------------------------
-frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = NULL, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = NULL) { 
+frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = TRUE, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = NULL) { 
   if("try-error" %in% class(try(select(df, count, resp), silent = TRUE))) stop('This function requires a dataframe with columns "resp" (categories) and "count" (n). Supplied dataframe is incomplete.')
-  if (N_mode == "t") N = paste0(formatC(min(df$count),format="f", big.mark=",", digits=0)," - ",formatC(max(df$count),format="f", big.mark=",", digits=0)) else N = ""
-  if (N_mode == "c") df = df %>% mutate(df, resp = paste0(df$resp, " (N=",count,")"))
+  if (N_mode == "t") {
+    if (min(df$count) == max(df$count)) {
+      N = n_format(max(df$count))
+    } else {
+      N = paste0(n_format(min(df$count))," - ", n_format(max(df$count)))
+    }
+  }
+  if (N_mode == "c") df = df %>% mutate(df, resp = paste0(df$resp, " (N=",n_format(count),")"))
   df = df %>% 
     rename("Question" = resp) %>%   
     select(-count)
@@ -649,7 +655,7 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
   FillOrder = names(df[,-c(1)])
   Table = df %>% 
     pivot_longer(cols=-Question, names_to="Response", values_to = "pct")
-  {if (! is.null(Legend_Preserve)) Table[is.na(Table)] = 0}
+  {if (Legend_Preserve) Table[is.na(Table)] = 0}
   Table %>% 
     ggplot(aes(x=Question, y=pct, fill=factor(Response, levels = rev(FillOrder)))) + 
     {if (is.null(border)) geom_bar(stat = 'identity') else geom_bar(stat = 'identity', color = border) } +
@@ -674,7 +680,79 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
           axis.ticks = element_blank())
 }
 
-
+# (Histo)gram
+# --------------------------------------------------------------------------------------------
+# Feed in a dataframe and a numeric variable, and this function will make a histogram of it. By default, the function will attempt to figure out what's 
+# the max value of your data and make a bin for each value. Obviously for best results, you should specify some of the parameters of your data.
+# Note: If your supplied column from the dataframe isn't numeric, it'll try to coerce it.
+# Arguments:
+#   start = The minimum value included in a bin. Auto-detected based on data minimum by default.
+#   stop = The maximum value included in a bin. Auto-detected based on data maximum by default.
+#   by = Specify the interval size to traverse the space between start/stop. Bins created based on each interval.
+#   bins = Specify the number of bins in the plot. 
+#   discrete = TRUE; Whether each bin is labeled as a discrete value (T), or between two values (F). The latter is more useful for percent ranges.
+#   frq = FALSE; Specify whether you want the Y-axis for the bins to be frequency counts or percent of total?
+#   x_axis = TRUE; Show or hide (FALSE) the x-axis.
+#   x_label = Manually specify the label on the x-axis.
+#   x_labels_type = "frq"; Whether the x-axis labels should be shown as raw values, or ("pct") percent-formatted.
+#   x_pct_accuracy = 1; Decimal format for x-axis percent labels, if activated. See scales::label_percent for syntax, but basically, 0.001 shows 3 decimal places, etc.
+#   y_label = Manually specify the label on the y-axis.
+#   font = Font size of the y-scale and the axes.
+#   data_labels = TRUE; Show or hide (FALSE) data-labels over each bin.
+#   colour = Specify the colour of the bars. Defaults to light blue.
+#   title = Specify the string title over the plot.
+#   title_font = Font size of the title.
+# --------------------------------------------------------------------------------------------
+histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by = NULL, discrete = TRUE, x_axis = TRUE, x_size = 12, x_pct_accuracy = 1, x_label = NULL, x_label_font = 4, frq = FALSE, y_label = NULL, data_labels = TRUE, x_labels_type = "frq", colour = "lightblue", title = NULL, title_font = 16) {
+  df = select(df, {{var}}) # Select the data
+  # Coerce to numeric if necessary...
+  if (lapply(select(df, {{var}}), class) != "numeric") {
+    message("Warning: Data supplied is not numeric - attempting to coerce...")
+    v = deparse(substitute(var))
+    df[v] = as.numeric(as.character(pull(df, v)))
+  }
+  # Define some things if not provided in the call.
+  { if(is.null(start)) start = as.numeric(df %>% pull({{var}}) %>% min(na.rm = TRUE)) }
+  { if(is.null(stop)) stop = as.numeric(df %>% pull({{var}}) %>% max(na.rm = TRUE)) }
+  { if(is.null(bins)) bins = ifelse(is.null(by), (stop - start), (stop - start) / by) }
+  df = filter(df, {{var}} >= start & {{var}} <= stop) # Manual value specification
+  by = stop / bins
+  df %>% 
+    ggplot(aes(x={{var}})) + 
+    # Have to make these layers conditionally since I can't seem to figure out how to conditionally invoke / define "bins =" vs. "breaks ="...
+    { if (discrete) {
+      geom_histogram({ if(frq == FALSE) aes(y = (..count..)/sum(..count..)) else aes(y = (..count..)) }, fill = colour, color = "black", bins = (bins + 1))
+    } else {
+      geom_histogram({ if(frq == FALSE) aes(y = (..count..)/sum(..count..)) else aes(y = (..count..)) }, fill = colour, color = "black", breaks = seq(start, stop, by = by))
+    } } +
+    # Frequency vs. percent scales.
+    { if(frq) scale_y_continuous(expand = expansion(mult = c(0, 0.13))) else scale_y_continuous(expand = expansion(mult = c(0, 0.13)), labels = scales::percent) } +
+    { if(x_labels_type == "pct") scale_x_continuous(labels = scales::percent_format(scale = 100, accuracy = x_pct_accuracy), 
+                                                    breaks = seq(start, stop, by=by))
+      else if(x_labels_type == "frq") scale_x_continuous(breaks = seq(start, stop, by=by)) } + 
+    ylab(ifelse(is.null(y_label), ifelse(frq == FALSE, "Percentage", "Count"), y_label)) +
+    { if(!is.null(title)) ggtitle(title) } +
+    { if(!is.null(x_label)) labs(x = x_label) } + 
+    theme(legend.position="bottom",
+          legend.title = element_blank(),
+          text = element_text(size=font),
+          plot.title = element_text(hjust = 0.5, size=title_font),
+          panel.background = element_blank(),
+          panel.grid.major.y = element_line(colour ="grey"),
+          panel.grid.major.x = element_line(colour ="grey"),
+          axis.ticks.y = element_blank(),
+          axis.ticks.x = { if(discrete) element_blank() else element_line(colour = "gray11") },
+          axis.text.x = { if(x_axis) element_text(angle=90, vjust=0.5, colour = "black", size = x_size) else element_blank() },
+          axis.text.y = element_text(colour = "black")) +
+    # Hovering data / bin labels - have to do each layer conditionally again because of needing to invoke "bins =" vs. "breaks =" again.
+    { if (data_labels) {
+      if (discrete) {
+        stat_bin(bins = bins + 1, geom = "text", { if(frq == FALSE) aes(y=(..count..)/sum(..count..), label=pct_format((..count..)/sum(..count..))) else aes(label=(..count..)) }, hjust = -0.25, angle = 90, size=x_label_font) 
+      } else {
+        stat_bin(breaks = seq(start, stop, by = by), geom = "text", { if(frq == FALSE) aes(y=(..count..)/sum(..count..), label=pct_format((..count..)/sum(..count..))) else aes(label=(..count..)) }, hjust = -0.25, angle = 90, size=x_label_font) 
+      }
+    } }
+}
 
 
 
@@ -688,13 +766,13 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
 # And so my old stuff doesn't break...
 # --------------------------------------------------------------------------------------------
 
-# Remove percent, return number. Basically the reverse of pct_format.
+# Remove percent, return number. Basically the reverse of pct_format. Use value() instead
 # --------------------------------------------------------------------------------------------
 pct_n = function(value) {
   parse_number(value) / 100
 }
 
-# Remove commas, return number. Basically the reverse of n_format. (Credit: https://stackoverflow.com/questions/49910861/removing-comma-from-numbers-in-r)
+# Remove commas, return number. Basically the reverse of n_format. Use value() instead. (Credit: https://stackoverflow.com/questions/49910861/removing-comma-from-numbers-in-r)
 # --------------------------------------------------------------------------------------------
 comma_n <- function(value) { 
   parse_number(value)
