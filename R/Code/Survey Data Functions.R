@@ -3,7 +3,7 @@
 # For working with data and surveys from Qualtrics
 
 # By: Fraser Hay, Conestoga College
-# With some things stolen from: Mark Kane, Conestoga College
+# With some things stolen from: Mark Kane, Conestoga College, and the Internet in general.
 # --------------------------------------------------------------------------------------------
 
 # These functions are probably inefficiently coded, but they seem to work. They also save me a lot of time.
@@ -107,51 +107,58 @@ ftw = function(df, Question_var_in_Quotes, Weight_var_in_Quotes = NULL, count_ro
     mutate(pct = count/sum(count)) %>% 
     arrange(desc(count))
   if (count_round == TRUE) {
-    mutate_at(df, vars(count), round) 
+    df = mutate_at(df, vars(count), round) 
   }
   return(df)
 }
 
 # (C)ross (T)abulation
 # --------------------------------------------------------------------------------------------
-# Creates a simple crosstab count table from two variables.
+# Creates a simple crosstab count table from two variables. Updated in Dec. 2021 to account for Qualtrics multi-coding (comma-no-space-separated) stuff. As a result:
+# Function Dependencies: Mark's MultiCoding function.
 # Arguments:
 #   Weight_var_in_Quotes = Specific weighting variable, optional.
 #   pct = Set to TRUE to change output to row percentages
 #   count = Set to TRUE to return a total N for each row - usually only used in conjunction with pct.
 #   decimals = Specify an integer to round to that many places
-#   include_N = Adds an "N" column with row totals.
-#   sort = Either set to TRUE to return the columns ordered highest (n) to lowest, or specify a label vector for the ordering.
+#   include_N = Adds "(N=)" indicator text to the first (category) column, with row totals.
+#   sort = TRUE, Returns the columns ordered highest (n) to lowest. Alternately specify a label vector for the ordering. FALSE returns as-is.
+#   order = Specify a vector of row labels to return the categories in that order.
 # --------------------------------------------------------------------------------------------
-ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE) {
-  Data = dataset %>% 
-    { if (is.null(Weight_var_in_Quotes)) select(., Column_Question_quoted, Row_Demo_quoted) else select(., Column_Question_quoted, Row_Demo_quoted, Weight_var_in_Quotes) } %>%
-    rename(Response = 1, Field = 2) %>% 
-    { if (is.null(Weight_var_in_Quotes)) mutate(., weight = 1) else rename(., weight = 3) }
-  if ("list" %in% sapply(data, class)) message("Caution: The function can run into problems with non-traditional data types.")
-  CrossTab = Data %>% 
-    group_by(Field, Response) %>% 
+ct = function(data, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE, order = NULL) {
+  df = data
+  x = MultiCoding(df, cols_quoted, label = "x")
+  y = MultiCoding(df, rows_quoted, label = "y")
+  data = {if (is.null(Weight_var_in_Quotes)) bind_cols(x, y, weight = 1) else bind_cols(x, y, select(df, Weight_var_in_Quotes) %>% rename(weight = Weight_var_in_Quotes))} %>% 
+    pivot_longer(cols=-c(weight, names(y)), names_to="Column", values_to = "selected") %>% 
+    filter(selected != 0) %>% 
+    select(-selected) %>% 
+    pivot_longer(cols=-c(weight, Column), names_to="Row", values_to = "selected") %>% 
+    filter(selected != 0) %>% 
+    select(-selected) %>% 
+    mutate(across(Column:Row, ~ gsub("x_|y_", "", .)))
+  CrossTab = data %>% 
+    group_by(Column, Row) %>% 
     drop_na %>%
     summarize(count = sum(weight)) %>% 
     ungroup() %>%
-    pivot_wider(names_from = Response, values_from = count, names_prefix = "cnt_") 
+    pivot_wider(names_from = Column, values_from = count) %>% 
+    { if (!is.null(order)) arrange(., factor(Row, levels = order)) else . }
   if (include_N == TRUE) {
     CrossTab = CrossTab %>% 
-      mutate(N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE)), Field = paste0( Field," (N = ",n_format(N),")" ))
+      mutate(N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE)), Row = paste0(Row," (N = ",n_format(N),")")) %>% 
+      select(-N)
   } 
-  CrossTab = select(CrossTab, Field, starts_with("cnt_")) 
-  names(CrossTab) = str_replace(names(CrossTab), "cnt_", "")
-  Overall = Data %>%  
-    group_by(Response) %>% 
+  Overall = data %>%  
+    group_by(Column) %>% 
     drop_na %>%
     summarize(count = sum(weight)) %>%
     ungroup() %>%
-    pivot_wider(names_from = Response, values_from = count, names_prefix = "cnt_") %>% 
-    mutate(Field = "Overall") %>% 
-    select(Field, starts_with("cnt_"))
-  names(Overall) <- str_replace(names(Overall), "cnt_", "")
+    pivot_wider(names_from = Column, values_from = count) %>% 
+    mutate(Row = "Overall") %>% 
+    select(Row, everything())
   Output = bind_rows(Overall,CrossTab)
-  names(Output)[1] = Row_Demo_quoted
+  names(Output)[1] = rows_quoted
   if (count == TRUE) {
     Output = Output %>%
       mutate(count = rowSums(select(., 2:ncol(.)), na.rm = TRUE)) %>%
@@ -182,11 +189,11 @@ ct = function(dataset, Row_Demo_quoted, Column_Question_quoted, Weight_var_in_Qu
     x = Output
     a = x[,1] # Pop-off the 'top'
     b = x[,2:ncol(x)] # Grab the rest
-    b = b[,rev(sort(as.numeric(as.vector(b[1,])), index.return = TRUE)$ix)] # Sort the columns for the rest based on the overall. NOTES: obviously this is line is more complicated than that from the previous iteration (b = b[,rev(order(b[1,]))]), however since early 2021 I was getting an annoying warning message - "In xtfrm.data.frame(x) : cannot xtfrm data frames". Apparently the original approach is simply not recommended anymore. https://win-vector.com/2021/02/07/it-has-always-been-wrong-to-call-order-on-a-data-frame/
+    b = b[,rev(sort(as.numeric(as.vector(b[1,])), index.return = TRUE)$ix)] # Sort the columns for the rest based on the overall. NOTES: obviously this line is more complicated than that from the previous iteration (b = b[,rev(order(b[1,]))]), however since early 2021 I was getting an annoying warning message - "In xtfrm.data.frame(x) : cannot xtfrm data frames". Apparently the original approach is simply not recommended anymore. https://win-vector.com/2021/02/07/it-has-always-been-wrong-to-call-order-on-a-data-frame/
     Output = bind_cols(a, b) # Recombine
     return(Output)
   } else if (length(sort) > 1) { # If a vector is provided, sort the output by the vector.
-    return(Output[,c(Row_Demo_quoted,sort)])
+    return(Output[,c(rows_quoted,sort)])
   }
   return(Output)
 }
@@ -240,7 +247,6 @@ col_percents = function(df, Col1Cats = TRUE) {
     mutate(df, across(.cols = everything(), ~ ./sum(., na.rm = TRUE)))
   }
 }
-
 
 # (C)rosstabulation (Table) Rendering
 # ------------------------------------------------------------------------------------------------------------
@@ -432,10 +438,18 @@ MultiCoding <- function(data, Q, label = NULL) {
     rename(Q = 1)
   temp = data %>% drop_na()
   temp$Q <- trimws(as.character(temp$Q))
-  resp <- unique(trimws(unlist(strsplit(temp$Q, ",(?!\\s)", perl = TRUE))))
+  resp <- unique(trimws(unlist(strsplit(temp$Q, ",(?!\\s)", perl = TRUE)))) # Identify the unique selection options
   dummies <- matrix(NA, nrow(data), length(resp)) # Create empty matrix to populate dummies.
-  for (i in 1:length(resp)) {
-    dummies[,i] <- ifelse(str_detect(data$Q, pattern = coll(resp[i])), 1, 0)
+  if (max(unlist(lapply(strsplit(temp$Q, ",(?!\\s)", perl = TRUE), length))) > 1) {  # This dense command checks whether the data itself contains comma-no-space-separated items that are being multi-selected. If that's the case, we need to approach things differently in the for loop below.)
+    message(paste0("MultiCoding() - Creating dummy vairables for response options - Multiple-response question (", Q, ")"))
+    for (i in 1:length(resp)) {
+      dummies[,i] <- ifelse(str_detect(data$Q, pattern = coll(resp[i])), 1, 0)
+    }
+  } else {
+    message(paste0("MultiCoding() - Creating dummy vairables for response options - Single-response question (", Q, ")"))
+    for (i in 1:length(resp)) {
+      dummies[,i] <- ifelse(data$Q == resp[i], 1, 0)
+    }
   }
   colnames(dummies) <- paste0(rep(label, length(resp)), resp)
   as.data.frame(dummies) # Return the dataframe
@@ -584,10 +598,10 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
 #   scale = Set to "pct" (default) for percentages, "count" or specify a max number for counts. (The graph will only display 4 gridlines + 0. Your scale typically needs to be cleanly divisable by 4 for gridlines to not look awkward. Don't over-exceed the highest count by much or the last gridline won't display.)
 #   decimals = Number of decimals to include for percentage rounding.
 #   pos = Function for positioning text labels. Eg. position_nudge(x = 0, y = 0.05)
-#   border = The colour you want the border to be, if applicable.
+#   border = TRUE; the colour you want the border to be, if applicable. Default is black. Disable with NULL.
 #   width = How thick do you want the bars? (In %, basically.)
 # --------------------------------------------------------------------------------------------
-frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, subtitle = NULL, scale = "pct", decimals = 0, colour = "#6baed6", pos = position_stack(vjust = 0.9), border = NULL, width = 0.8) {
+frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, subtitle = NULL, scale = "pct", decimals = 0, colour = "#6baed6", pos = position_stack(vjust = 0.9), border = TRUE, width = 0.8) {
   df = df %>%  
     mutate(resp = wrap.labels(resp, Cat_wrap_length))
   if(!"pct" %in% colnames(df)) {
@@ -634,9 +648,9 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 #   Legend_Padding = Play with to adjust the spacing of the legend on the graph.
 #   Legend_Preserve = TRUE; If your graph has empty (NA) columns, by setting NA's to 0's, this preserves the categories in the legend from being dropped if they have no data. Disable by setting to NULL.
 #   decimals = Number of decimals to include for percentage rounding.
-#   border = Set a single border colour for all categories / bars in the stack.
+#   border = TRUE; Set a single border colour for all categories / bars in the stack. Default is black. Disable with NULL.
 # --------------------------------------------------------------------------------------------
-frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = TRUE, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = NULL) { 
+frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = TRUE, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = TRUE) { 
   if("try-error" %in% class(try(select(df, count, resp), silent = TRUE))) stop('This function requires a dataframe with columns "resp" (categories) and "count" (n). Supplied dataframe is incomplete.')
   if (N_mode == "t") {
     if (min(df$count) == max(df$count)) {
