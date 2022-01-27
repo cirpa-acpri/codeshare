@@ -1,7 +1,7 @@
 ---
 title: "Demonstrating Some Survey Data Functions"
 author: "Fraser Hay"
-date: "Last Updated: 01/27/2020"
+date: "Last Updated: 01/27/2022"
 output: html_document
 ---
 
