@@ -74,10 +74,10 @@ cb <- function(df, sep="\t", dec=".", max.size=(200*1000)) {
 
 # Paste a table you just copied in Excel into R (Credit: https://www.youtube.com/watch?v=4Y_UhaZj-5I)
 # ---------------------------------------------------------------------
-# As above, this should be built-in... Example usage: 1) Copy data with headers in Excel. 2) data = r.cb()
+# As above, this should be built-in... Example usage: 1) Copy data with headers in Excel. 2) data = cb.read()
 # ---------------------------------------------------------------------
 cb.read = function(sep="\t", header=TRUE) {
-  read.table("clipboard", sep=sep, header=header)  
+  read.table("clipboard", sep=sep, header=header, colClasses = "character", check.names = FALSE)
 }
 
 # Set values - so I can adjust labels or values while still in a pipe.
@@ -124,8 +124,9 @@ ftw = function(df, Question_var_in_Quotes, Weight_var_in_Quotes = NULL, count_ro
 #   include_N = Adds "(N=)" indicator text to the first (category) column, with row totals.
 #   sort = TRUE, Returns the columns ordered highest (n) to lowest. Alternately specify a label vector for the ordering. FALSE returns as-is.
 #   order = Specify a vector of row labels to return the categories in that order.
+#   row_recodes = Specify a named vector (eg. c("New" = "Original")) to recode row categories.
 # --------------------------------------------------------------------------------------------
-ct = function(data, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE, order = NULL) {
+ct = function(data, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE, order = NULL, row_recodes = NULL) {
   df = data
   x = MultiCoding(df, cols_quoted, label = "x")
   y = MultiCoding(df, rows_quoted, label = "y")
@@ -142,13 +143,14 @@ ct = function(data, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct =
     drop_na %>%
     summarize(count = sum(weight)) %>% 
     ungroup() %>%
-    pivot_wider(names_from = Column, values_from = count) %>% 
+    pivot_wider(names_from = Column, values_from = count) %>%
+    mutate(Row = recode_vector(Row, row_recodes)) %>% 
     { if (!is.null(order)) arrange(., factor(Row, levels = order)) else . }
   if (include_N == TRUE) {
     CrossTab = CrossTab %>% 
       mutate(N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE)), Row = paste0(Row," (N = ",n_format(N),")")) %>% 
       select(-N)
-  } 
+  }
   Overall = data %>%  
     group_by(Column) %>% 
     drop_na %>%
@@ -260,8 +262,9 @@ col_percents = function(df, Col1Cats = TRUE) {
 #   decimals = Assignment for how many decimals to include in numerical output.
 #   title = Specify a title for the top of your table.
 #   font = Font size for the table container.
+#   scrollX = If your table is very wide, use this to add a scroll-bar so it doesn't spill. Also activates DT's fixedColumns option, and disables data bars for the first column (which show N-sizes)
 # ------------------------------------------------------------------------------------------------------------
-ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%", chi2 = TRUE, freq = FALSE, decimals = NULL, title = "", font = "15") {
+ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%", chi2 = TRUE, freq = FALSE, decimals = NULL, title = "", font = "15", scrollX = FALSE) {
   # Assign Col1Name, if not default to supplied variable title
   if (!is.null(Col1Name)) { names(df)[1] = Col1Name } 
   if (chi2 == TRUE) {
@@ -336,11 +339,11 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
     df = bind_cols(as_tibble(df), as_tibble(rbind(matrix(10L, nrow = 1, ncol = dim(df)[2]-2), matrix(9L, nrow = dim(df)[1]-1, ncol = dim(df)[2]-2))))
   }
   N <- (ncol(df) - 2) / 2 # Number of columns, will be useful for the table render, relating to the dataframe.
-  CrossTab = datatable(df, class = 'row-border', rownames = FALSE, 
+  CrossTab = datatable(df, class = 'row-border', rownames = FALSE, extensions = 'FixedColumns', width = '100%',
                        caption = htmltools::tags$caption(style = 'caption-side: top; text-align: center; color:black; font-size:150% ;',title),
                        options = list(
                          initComplete = htmlwidgets::JS("function(settings, json) {", paste0("$(this.api().table().container()).css({'font-size': '", paste0(font, "px"), "'});"), "}"), # Source: https://stackoverflow.com/questions/44101055/changing-font-size-in-r-datatables-dt
-                         scrollX = FALSE, paging = FALSE, searching = FALSE, dom = 't', ordering = F, autoWidth = TRUE,
+                         scrollX = scrollX, fixedColumns = scrollX, paging = FALSE, searching = FALSE, dom = 't', ordering = F, autoWidth = TRUE,
                          columnDefs = list(list(visible=FALSE, targets = (N+1):(2*N+1)),
                                            list(className = 'dt-center', targets = "_all"),
                                            list(width = Col1Width, targets = 0),
@@ -354,11 +357,12 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
                 backgroundSize = '98% 80%',
                 backgroundRepeat = 'no-repeat',
                 backgroundPosition = 'left') %>%
-    formatStyle(1, (N+2), # Data bars - 1st column N's
-                background = styleColorBar(as.integer(0:max_cat), "#dfe6f585", angle = -90),
-                backgroundSize = '98% 80%',
-                backgroundRepeat = 'no-repeat',
-                backgroundPosition = 'left') %>%
+    { if (scrollX == FALSE) formatStyle(., 1, (N+2), # Data bars - 1st column N's
+                                        background = styleColorBar(as.integer(0:max_cat), "#dfe6f585", angle = -90),
+                                        backgroundSize = '98% 80%',
+                                        backgroundRepeat = 'no-repeat',
+                                        backgroundPosition = 'left') else formatStyle(., 1) } %>%
+    formatStyle(1, target = "cell", background = styleEqual("Overall", "#337ab7")) %>% # This manual colouring of the "Overall" cell needed due to 'FixedColumns' extension. For some reason it has to go below the data bars...
     formatPercentage(ifelse(freq==FALSE,2,0):ifelse(freq==FALSE,(N+1),0), ifelse(!is.null(decimals),decimals-2, 0)) %>% # Percentages
     formatRound(ifelse(freq==TRUE,2,0):ifelse(freq==TRUE,(N+1),0), ifelse(!is.null(decimals),decimals, 0)) %>% # Frequency decimals
     formatStyle(1:(N+1), border = '1px solid #ddd') %>% 
@@ -408,10 +412,10 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
   names(output_raw) = Demos
   out = NULL # Variable for knit statements
   for (i in 1:length(output_dt)) { # For every DT we have...
-    knit_expanded <- paste0("\n\n", paste0(rep("#", HeadingLvl), collapse = "")," ", Tabs[i], " {-}\n\n```{r results='asis', echo=FALSE, message=FALSE, warning=FALSE}\n\n",assign,"[['dt']][[", i, "]]\n\n```\n\n&nbsp;\n\n") # Make the knit statement
+    knit_expanded <- paste0("\n\n", paste0(rep("#", HeadingLvl), collapse = "")," ", Tabs[i], " {-}\n\n```{r results='asis'}\n\n",assign,"[['dt']][[", i, "]]\n\n```\n\n&nbsp;\n\n") # Make the knit statement
     out = c(out, knit_expanded) # Append so as to create a vector.
   }
-  message("\n--- To preview the output, paste and run the following:\nfor (i in 1:length(",assign,"[['dt']])) {print(",assign,"[['dt']][[i]])}\n--- Include knit command *in-text* below for rendering (remember to end the tabset):\n`r paste(knit(text = ",assign,"[['knit_code']]), collapse = '\\n')`")
+  message("\n--- To preview the output, paste and run the following:\n",assign,"[['dt']]\n--- Include knit command *in-text* below for rendering (remember to end the tabset):\n`r paste(knit(text = ",assign,"[['knit_code']]), collapse = '\\n')`")
   ctabs = list(out, output_dt, output_raw)
   names(ctabs) = c("knit_code", "dt", "raw")
   if (!is.null(assign)) {
@@ -539,18 +543,19 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
 #     > Questions is supposed to be a dataframe with the following columns (In Qualtrics output, this is the first two rows of an excel export):
 #       + Q = The column name in the reference dataset
 #       + Text = The actual question text
+#   contains = TRUE, Whether to try to grab the entire battery or only use the "Q_prefix_quoted" as one question.
 # --------------------------------------------------------------------------------------------
-battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = FALSE, round_freq = TRUE, Questions_df = Questions) {
+battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = FALSE, round_freq = TRUE, Questions_df = Questions, contains = TRUE) {
   if (is.null(Weight_var_in_Quotes)) { 
-    temp = select(df, contains(Q_prefix_quoted)) %>% 
+    temp = { if (contains) select(df, contains(Q_prefix_quoted)) else select(df, Q_prefix_quoted) } %>% 
       mutate(weight = 1) %>% 
       select(weight, everything())
   } else { 
-    temp = select(df, Weight_var_in_Quotes, contains(Q_prefix_quoted))
+    temp = { if (contains) select(df, Weight_var_in_Quotes, contains(Q_prefix_quoted)) else select(df, Weight_var_in_Quotes, Q_prefix_quoted) }
   }
   temp = temp %>% 
     rename(weight = 1) %>% 
-    pivot_longer(cols = contains(Q_prefix_quoted), names_to = "Q", values_to = "resp") %>% 
+    { if (contains) pivot_longer(., cols = contains(Q_prefix_quoted), names_to = "Q", values_to = "resp") else pivot_longer(., cols = Q_prefix_quoted, names_to = "Q", values_to = "resp") } %>% 
     drop_na %>% 
     group_by(Q, resp) %>% 
     summarize(count = sum(weight, na.rm = TRUE))
@@ -768,9 +773,27 @@ histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by 
     } }
 }
 
-
-
-
+# Recode Vector
+# --------------------------------------------------------------------------------------------
+# Allows you to specify a named vector and it will inspect the input vector and attempt to recode any matches. Relies heavily on dplyr. 
+# Not sure why there isn't a built-in function for this. Also, save yourself some typing and use dput() to pre-type the vector for you.
+# Arguments:
+#   vector = Input vector
+#   recodes = a named vector (eg. c("recoded value" = "original value")) for the recode-pair transformations you want to conduct.
+# --------------------------------------------------------------------------------------------
+recode_vector = function(vector, recodes) {
+  if(!is.null(recodes)) {
+    recode_table = as.data.frame(recodes) %>% 
+      mutate(new = row.names(.)) %>% 
+      remove_rownames()
+    as.data.frame(vector) %>% 
+      left_join(recode_table, by = c("vector" = "recodes")) %>% 
+      mutate(new = ifelse(is.na(new), vector, new)) %>% 
+      .$new
+  } else {
+    return(vector)
+  }
+}
 
 
 
