@@ -90,27 +90,32 @@ set = function(df, r, c, value) {
   return(df)
 }
 
-# (F)requency (T)able, (W)eighted - Default sort is by count.
+# (F)requency (T)able, (W)eighted
 # --------------------------------------------------------------------------------------------
-# Creates a basic frequency table (with percentages) based on a categorical question.
+# Creates a basic frequency table (with percentages) based on a categorical question. Sorts by count.
 # Arguments:
 #   count_round = Whether you want counts rounded to whole numbers.
 # --------------------------------------------------------------------------------------------
-ftw = function(df, Question_var_in_Quotes, Weight_var_in_Quotes = NULL, count_round = TRUE) {
+ftw = function(df, question, weight, count_round = TRUE) {
+  question = if("try-error" %in% class(try(class(question), silent = TRUE))) deparse(substitute(question)) else sym(question) # Accept both `var` (deparse/substitute) and "var" (sym).
+  if(missing(weight)) { weight = NULL } else { if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else { weight = sym(weight) } } # Accept both `var` (deparse/substitute) and "var" (sym) - and if not specified, revert to NULL.
   df = df %>% 
-    { if (is.null(Weight_var_in_Quotes)) select(., Question_var_in_Quotes) else select(., Question_var_in_Quotes, Weight_var_in_Quotes) } %>% 
-    rename(resp = Question_var_in_Quotes) %>% 
-    { if (is.null(Weight_var_in_Quotes)) mutate(., w = 1) else rename(., w = Weight_var_in_Quotes) } %>% 
+    { if (is.null(weight)) 
+      select(., question) %>% mutate(., w = 1) # If no weight, weights default to 1.
+      else 
+        select(., question, weight) %>% rename(., w = weight) } %>% # Select weight
+    rename(resp = question) %>% 
     drop_na %>%
     group_by(resp) %>% 
-    summarize(count = sum(w)) %>% 
-    mutate(pct = count/sum(count)) %>% 
-    arrange(desc(count))
+    summarize(count = sum(w)) %>% # Sum weights
+    mutate(pct = count/sum(count)) %>% # Add percents
+    arrange(desc(count)) # Arrange by counts
   if (count_round == TRUE) {
-    df = mutate_at(df, vars(count), round) 
+    df = mutate_at(df, vars(count), round) # Round to integers
   }
   return(df)
 }
+
 
 # (C)ross (T)abulation
 # --------------------------------------------------------------------------------------------
@@ -122,9 +127,9 @@ ftw = function(df, Question_var_in_Quotes, Weight_var_in_Quotes = NULL, count_ro
 #   count = Set to TRUE to return a total N for each row - usually only used in conjunction with pct.
 #   decimals = Specify an integer to round to that many places
 #   include_N = Adds "(N=)" indicator text to the first (category) column, with row totals.
-#   sort = TRUE, Returns the columns ordered highest (n) to lowest. Alternately specify a label vector for the ordering. FALSE returns as-is.
-#   order = Specify a vector of row labels to return the categories in that order.
-#   row_recodes = Specify a named vector (eg. c("New" = "Original")) to recode row categories.
+#   sort = TRUE; Returns the columns ordered highest (n) to lowest. Alternately specify a label vector for the column ordering. FALSE returns as-is.
+#   order = NULL; Specify a vector of row labels to return the categories in that order.
+#   row_recodes = NULL; Specify a named vector (eg. c("New" = "Original")) to recode row categories.
 # --------------------------------------------------------------------------------------------
 ct = function(data, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE, order = NULL, row_recodes = NULL) {
   df = data
@@ -144,7 +149,7 @@ ct = function(data, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct =
     summarize(count = sum(weight)) %>% 
     ungroup() %>%
     pivot_wider(names_from = Column, values_from = count) %>%
-    mutate(Row = recode_vector(Row, row_recodes)) %>% 
+    { if (!is.null(row_recodes)) mutate(Row = recode(Row, !!!row_recodes)) else . } %>% 
     { if (!is.null(order)) arrange(., factor(Row, levels = order)) else . }
   if (include_N == TRUE) {
     CrossTab = CrossTab %>% 
@@ -262,7 +267,7 @@ col_percents = function(df, Col1Cats = TRUE) {
 #   decimals = Assignment for how many decimals to include in numerical output.
 #   title = Specify a title for the top of your table.
 #   font = Font size for the table container.
-#   scrollX = If your table is very wide, use this to add a scroll-bar so it doesn't spill. Also activates DT's fixedColumns option, and disables data bars for the first column (which show N-sizes)
+#   scrollX = If your table is very wide, use this to add a scroll-bar so it doesn't spill. Also activates DT's fixedColumns option (first column stays put when scrolling), and disables data bars for the first column (which show N-sizes) (this is because the data bars work by filling the bar with the colour and making the end of the bar transparent) 
 # ------------------------------------------------------------------------------------------------------------
 ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%", chi2 = TRUE, freq = FALSE, decimals = NULL, title = "", font = "15", scrollX = FALSE) {
   # Assign Col1Name, if not default to supplied variable title
@@ -426,13 +431,58 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
   }
 }
 
+
+# (C)ross(t)abulation (Tabset) for (D)ata(t)ables - (Battery) Edition
+# ------------------------------------------------------------------------------------------------------------
+# This is basically a fancy way of looping ct_tabset_dt() calls. This approach is used when I want to make the crosstabs for a battery-type question
+# without needing to iterate over each question. The result of the call is a series of output elements from the various ct_tabset_dt's and a single
+# output vector of knit code, to be used for showing it all in your .rmd. I typically make the holding section a .tabset-pills.
+# Assumes you have a 'Questions' dataframe, which I often have (for looking up Question titles)...
+# [Musing] ... This could possibly be retrofitted to accommodate looping over multiple questions (such as when working with multiple-select batteries);
+# I'd need to tinker with the labels part (at the top), which is where the 'Questions' df comes in by default. ... Or allow you to define the Q's...
+# Arguments:
+#   dataset_in_quotes = Your dataframe. Someday I'll get smart enough to dispense with the quotes... (Piped into ct() calls)
+#   Q = The question (battery-prefix) you want to iterate over. (eg. Q2 would look for contains("Q2"), so it would grab Q2_1, Q2_2, etc.) (Piped into ct() calls)
+#   Demos = A vector of all the demographic crosstabulation variables you want to be looped through. (Piped into ct() calls)
+#   Tabs = A vector of all the titles of the tabs you want generated for each respective demo-ctable() output. (Piped into ct() calls)
+#   Params = A vector of any ctable() parameters you want passed for each respective demo-ctable() output. (Piped into ct() calls)
+#   row_recodes = NULL; A named vector (eg. c("recoded value" = "original value")) for the recode-pair transformations you want to conduct for rows. Because we're doing demo tabsets, you'll need to do this as "one big vector" accommodating all the recodes you want to do for all demo variables. This would be if you have response categories that are ridiculously long and should be short-formed.
+#   sort = NULL; Specify a label vector for column ordering. FALSE returns as-is. (Piped into ct() calls) 
+#   order = NULL; Specify a vector of row labels to return the categories in that order. (Piped into ct() calls) Because we're doing demo tabsets, you'll need to do this as "one big vector" accommodating all the ordering you want to do for all demo variables.
+#   output_var = String to name the variable assignment for the output.
+#   HeadingLvl = How many #'s to include as part of the rendered tabsets.
+#   tab_recodes = Same as row_recodes above, but for the names of the categories / tabs people will click on. Specify a named vector to recode.
+#
+# Remember to include a knit command below your chunk to render the output after running this!
+# Example: `r paste(knit(text = out), collapse = '\n')`
+# ------------------------------------------------------------------------------------------------------------
+ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weight", Demos, Tabs, Params, row_recodes = NULL, sort = NULL, order = NULL, output_var = "out", HeadingLvl = 4, tab_recodes = NULL) {
+  labels = filter(Questions, grepl({{Q}}, Q))[,-3] %>%
+    mutate(labels = gsub(".*-\\s", "", .$Text[which(.$Q == Q)])) %>%
+    .[,-2]
+  if(is.null(tab_recodes)) Categories = unique(labels$labels) else Categories = recode(unique(labels$labels), !!!tab_recodes)
+  out = NULL
+  for (c in Categories) {
+    Q = labels[[which(c == Categories),1]]
+    ct_tabset_dt(ct_code = paste0('ct(', dataset_in_quotes,', x, "', Q, '", Weight_var_in_Quotes = "', weight ,'"', if(!is.null(row_recodes)) paste0(', row_recodes = ', row_recodes), 
+                                  if(!is.null(order)) paste0(", order = c(", paste0('"', order, '"', collapse = ", "), "),"),
+                                  ifelse(!is.null(sort), paste0(", sort = c(", paste0('"', sort, '"', collapse = ", "), "))"), ")")), Demos = Demos, Tabs = Tabs, Params = Params, HeadingLvl = (HeadingLvl + 1), output = TRUE, assign = paste0("t", which(c == Categories)))
+    a = paste0("t",which(c == Categories))
+    out = c(out, paste0(paste0(rep("#", HeadingLvl), collapse = "")," ",c," {.tabset .tabset-fade -}\n\n"),
+            get(a)[['knit_code']],
+            "\n\n")
+  }
+  assign(output_var, out, envir = globalenv())
+}
+
+
 # Mark's MultiCoding Function, for multi-response questions from Qualtrics (comma-separated options).
 # --------------------------------------------------------------------------------------------
 # Credit: Mark Kane, Conestoga College
 # Used for multiple-response questions (from Qualtrics) where each option is a separate column, but shares a common column
 # name prefix (eg. 'Q7_'). It will grab all of these columns and, where a value exists, code a 1 or a 0 if a value is present
 # or not, coding rows NA if the respondent didn't complete any question of the series. (Might thereby be important that you
-# include a "none of the above" option for your survey questions.)
+# include a "none of the above" option for your survey questions - since otherwise, people disappear from the denominator.)
 # Arguments:
 #   label = Set your own prefix (eg. "abc" = "abc_item") for the output; otherwise, the current prefix will be preserved. Setting to "" removes all prefixes.
 # --------------------------------------------------------------------------------------------
@@ -643,7 +693,7 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 # Arguments:
 #   N_mode = Specify the mode to display N values in the graph. Can be either ("t")itle or ("c")ategory. FALSE disables N's.
 #   subtitle = Manually specify subtitle content. Overrides N_mode.
-#   Fcolour = R palette being used.
+#   Fcolour = R palette being used - see https://r-graph-gallery.com/38-rcolorbrewers-palettes.html
 #   colours = Allows you to specify a vector [c()] of colours (labels or hex) to be displayed (left to right) in the graph. Ensure you have as many colours as there are legend categories.
 #   Cat_font_size / Cat_wrap_length = Refer to categories (items on the left, not percentages).
 #   Label_font_size = Font size of the percentage labels.
@@ -654,10 +704,12 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 #   Legend_Preserve = TRUE; If your graph has empty (NA) columns, by setting NA's to 0's, this preserves the categories in the legend from being dropped if they have no data. Disable by setting to NULL.
 #   decimals = Number of decimals to include for percentage rounding.
 #   border = TRUE; Set a single border colour for all categories / bars in the stack. Default is black. Disable with NULL.
+#   divergent = NULL; This reorganizes the stack to a "divergent" set-up, with bars opposing each other from a central axis line. You'll need to supply a list of two vectors: 'left' and 'right', containing the quoted names of the columns you want on each side of the line, in order. Only those columns (bars) will be returned. Eg: divergent = list(left = c("Poor", "Fair"), right = c("Good", "Excellent")) -- Credit: Mark Kane, who came up the proof-of-concept here.
 # --------------------------------------------------------------------------------------------
-frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = TRUE, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = TRUE) { 
-  if("try-error" %in% class(try(select(df, count, resp), silent = TRUE))) stop('This function requires a dataframe with columns "resp" (categories) and "count" (n). Supplied dataframe is incomplete.')
-  if (N_mode == "t") {
+frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = TRUE, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = TRUE, divergent = NULL) { 
+  if("try-error" %in% class(try(select(df, count, resp), silent = TRUE))) stop('This function requires a dataframe with columns "resp" (categories) and "count" (n). Supplied dataframe is incomplete.') # Error-checking the dataframe
+  # N-mode labeling
+  if (N_mode == "t") { 
     if (min(df$count) == max(df$count)) {
       N = n_format(max(df$count))
     } else {
@@ -665,26 +717,33 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
     }
   }
   if (N_mode == "c") df = df %>% mutate(df, resp = paste0(df$resp, " (N=",n_format(count),")"))
+  # Setting up the data
   df = df %>% 
     rename("Question" = resp) %>%   
-    select(-count)
-  df = df %>%
-    mutate(Question = wrap.labels(Question, Cat_wrap_length))
-  Qlabels = unique(df$Question)
-  FillOrder = names(df[,-c(1)])
-  Table = df %>% 
+    mutate(Question = wrap.labels(Question, Cat_wrap_length)) %>% 
+    select(-count) %>%
+    { if (!is.null(divergent)) select(., c("Question", rev(divergent[['left']]), divergent[['right']])) else .[] } %>% # For divergent graphs: select columns in order
+    { if (!is.null(divergent)) mutate(., across(divergent[['left']], ~ . * -1)) else .[] }  # For divergent graphs: Make the left-side values negative
+  if (is.null(colours)) colours = RColorBrewer::brewer.pal(n = (ncol(df) - 1), name = Fcolour) # Colours
+  Qlabels = unique(df$Question) # Question (bar) labels
+  FillOrder = names(df[,-c(1)]) # The order of the bars
+  # Table = final data for ggplot - needs to be long format
+  Table = df %>%  
     pivot_longer(cols=-Question, names_to="Response", values_to = "pct")
-  {if (Legend_Preserve) Table[is.na(Table)] = 0}
+  { if (Legend_Preserve) Table[is.na(Table)] = 0 } # Legend preserve option
+  # ggplot call
   Table %>% 
     ggplot(aes(x=Question, y=pct, fill=factor(Response, levels = rev(FillOrder)))) + 
-    {if (is.null(border)) geom_bar(stat = 'identity') else geom_bar(stat = 'identity', color = border) } +
-    geom_text(aes(label = ifelse(pct>=0.045,sprintf(paste0("%.", decimals, "f%%"), (pct*100)),"")), size = Label_font_size, position = position_stack(vjust = 0.5)) +
-    coord_flip() +
+    { if (is.null(border)) geom_bar(stat = 'identity') else geom_bar(stat = 'identity', color = border) } + # Borders
+    { if (!is.null(divergent)) geom_hline(yintercept=0, colour="black", size=1.25) } + # For divergent graphs: X-axis line
+    { if (!is.null(divergent)) geom_text(aes(label = ifelse(abs(pct)>=0.045,sprintf(paste0("%.", decimals, "f%%"), (abs(pct)*100)),"")), size = Label_font_size, position = position_stack(vjust = 0.5)) else geom_text(aes(label = ifelse(pct>=0.045, sprintf(paste0("%.", decimals, "f%%"), (pct * 100)), "")), size = Label_font_size, position = position_stack(vjust = 0.5)) } + # For divergent graphs: we have to use the absolute value of the pcts for graphing
+    coord_flip() + # Horizontal graph
     scale_x_discrete(limits=rev(Qlabels)) +
-    {if (is.null(colours)) scale_fill_brewer(palette = Fcolour) else scale_fill_manual(values = rev(colours)) } +
-    scale_y_continuous(breaks = seq(0,1,0.1), labels = pct_format(seq(0,1,0.1))) +
+    { if (!is.null(divergent)) scale_fill_manual(breaks = rev(c(rev(FillOrder[1:length(divergent[['left']])]), FillOrder[(length(divergent[['left']])+1):sum(lengths(divergent))])), values = rev(colours)) else scale_fill_manual(values = rev(colours)) } + # For divergent graphs: additionally flipping the order of the "left side" columns.
+    { if (!is.null(divergent)) scale_y_continuous(breaks = seq(-1,1,0.2), labels = pct_format(abs(seq(-1,1,0.2))), limits = c(-1,1)) else scale_y_continuous(breaks = seq(0,1,0.1), labels = pct_format(seq(0,1,0.1))) } + # For divergent graphs: the scale needs to be -1 to +1, rather than 0-1.
     guides(fill=guide_legend(nrow=Legend_Rows,byrow=TRUE,reverse=TRUE)) +
-    patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), subtitle=ifelse(!is.null(subtitle), subtitle, ifelse(N_mode == "t", paste0("N = ",N), "")), theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,ifelse(any(!is.null(subtitle) | N_mode == "t"),5,-10),0)))) +
+    patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), subtitle=ifelse(!is.null(subtitle), subtitle, ifelse(N_mode == "t", paste0("N = ",N), "")), theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,ifelse(any(!is.null(subtitle) | N_mode == "t"),5,-10),0)))) + # Title & subtitle
+    # Theme (aesthetic) settings
     theme(legend.position="bottom",
           legend.title = element_blank(),
           legend.text = element_text(size = Legend_Font),
@@ -699,8 +758,68 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
           axis.ticks = element_blank())
 }
 
+
+# (Fr)e(q)uency (G)raph, (Overlap)ped
+# --------------------------------------------------------------------------------------------
+# Creates a "grouped" bar chart where there's the ability to overlap them. 
+# Function Dependencies: wrap.labels
+# Required input: a frequency table with dimensions: "resp" [category], and a column with the counts (or percentages) for each response option.
+# Arguments:
+#   groups; A character vector with the value columns you want displayed in the stacked bar, in order.
+#   pct = TRUE; Whether to run a col_percents() call on the values. If you're piping in counts, this is good. If you've already converted things to percents, set this to FALSE.
+#   border = "#00000060"; Border colour of the bars
+#   colours; A character vector with the colours you want used for the bars. REMEMBER to include the transparency level (percentage) as the last two numbers if you want to see through things.
+#   Cat_font_size / Cat_wrap_length = Refer to these characteristics of the category text (items on the left, not the percentages).
+#   label_font_size = Font size of the percentage labels.
+#   bar_width = 0.4; How thick the bars should be.
+#   spacing = 0.2; Spacing between individual bars (and therefore how big category groups will be).
+# --------------------------------------------------------------------------------------------
+frq_g_overlap = function(df, title = "Chart", groups = names(df)[-1], pct = TRUE, border = "#00000060", colours = NULL, Cat_font_size = 14, Cat_wrap_length = 40, label_font_size = 4, bar_width = 0.4, spacing = 0.2) {
+  if (is.null(colours) | length(colours) != length(groups)) stop("Omission: You need to specify a vector of colours (with transparency numbers trailing, if applicable) the same length as the number of bars (specified groups) in your dataframe.")
+  # Data reshaping: the function takes output similar to ct(), but ggplot needs a column for category, group, and value in this case.
+  x_pos = seq(spacing, (spacing * -1), length = length(groups))
+  BarData_Long = df %>%
+    { if (pct) col_percents() else . } %>% 
+    pivot_longer(cols = 2:ncol(df), names_to = "Group") %>% 
+    mutate(resp = wrap.labels(resp, Cat_wrap_length)) %>% 
+    mutate(resp = factor(resp, levels = rev(unique(.$resp))))
+  # The ggplot-call
+  ggplot(BarData_Long, aes(x=resp, y=value, fill = Group)) +
+    # Here I've conditionally accomodated up to 5 of these geom_bar/geom_text combos. You could add more if you wanted to go crazy.
+    geom_bar(data= ~ filter(., Group == groups[1]), stat = "identity", width = bar_width, position = position_nudge(x = x_pos[1]), colour=border) +
+    geom_bar(data= ~ filter(., Group == groups[2]), stat = "identity", width = bar_width, position = position_nudge(x = x_pos[2]), colour=border) +
+    { if (length(groups) > 2) geom_bar(data= ~ filter(., Group == groups[3]), stat = "identity", width = bar_width, position = position_nudge(x = x_pos[3]), colour=border) } + 
+    { if (length(groups) > 3) geom_bar(data= ~ filter(., Group == groups[4]), stat = "identity", width = bar_width, position = position_nudge(x = x_pos[4]), colour=border) } +
+    { if (length(groups) > 4) geom_bar(data= ~ filter(., Group == groups[5]), stat = "identity", width = bar_width, position = position_nudge(x = x_pos[5]), colour=border) } +
+    geom_text(data= ~ filter(., Group == groups[1]), aes(label = ifelse(value>0,paste0(round(value*100,0),"%"),"")), size = label_font_size, position = position_nudge(x = x_pos[1], y = 0.04)) +
+    geom_text(data= ~ filter(., Group == groups[2]), aes(label = ifelse(value>0,paste0(round(value*100,0),"%"),"")),  size = label_font_size, position = position_nudge(x = x_pos[2], y = 0.04)) +
+    { if (length(groups) > 2) geom_text(data= ~ filter(., Group == groups[3]), aes(label = ifelse(value>0,paste0(round(value*100,0),"%"),"")), size = label_font_size, position = position_nudge(x = x_pos[3], y = 0.04)) } +
+    { if (length(groups) > 3) geom_text(data= ~ filter(., Group == groups[4]), aes(label = ifelse(value>0,paste0(round(value*100,0),"%"),"")), size = label_font_size, position = position_nudge(x = x_pos[4], y = 0.04)) } +
+    { if (length(groups) > 4) geom_text(data= ~ filter(., Group == groups[5]), aes(label = ifelse(value>0,paste0(round(value*100,0),"%"),"")), size = label_font_size, position = position_nudge(x = x_pos[5], y = 0.04)) } +
+    scale_fill_manual(values=colours, limits = groups) +
+    geom_vline(xintercept=seq(-0.5, length(groups)+1.5, 1), colour="gray") + # Gridlines
+    patchwork::plot_annotation(title = wrap.labels(title, 55), theme = theme(plot.title = element_text(hjust = 0.5, size = 16, margin = margin(0,0,8,0)))) +
+    scale_y_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0%","25%","50%","75%","100%")) +
+    coord_flip() +
+    theme(legend.position="bottom",
+          legend.title = element_blank(),
+          legend.text=element_text(size=11),
+          legend.margin = margin(5, 0, 5, -100),
+          axis.title.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.text.y = element_text(size = cat_font_size, margin=margin(0,0,0,0)),
+          text = element_text(size = 14),
+          plot.title = element_text(hjust = 0.5, size = 16, margin = margin(15,0,8,-990)),
+          panel.background = element_blank(),
+          panel.grid.major.x = element_line(colour ="grey"),
+          panel.grid.minor.x = element_line(colour ="grey90"),
+          axis.ticks = element_blank())
+}
+
+
 # (Histo)gram
 # --------------------------------------------------------------------------------------------
+# Currently a bit broken, needs work... I wonder if someone has done this better... :P
 # Feed in a dataframe and a numeric variable, and this function will make a histogram of it. By default, the function will attempt to figure out what's 
 # the max value of your data and make a bin for each value. Obviously for best results, you should specify some of the parameters of your data.
 # Note: If your supplied column from the dataframe isn't numeric, it'll try to coerce it.
@@ -773,27 +892,8 @@ histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by 
     } }
 }
 
-# Recode Vector
-# --------------------------------------------------------------------------------------------
-# Allows you to specify a named vector and it will inspect the input vector and attempt to recode any matches. Relies heavily on dplyr. 
-# Not sure why there isn't a built-in function for this. Also, save yourself some typing and use dput() to pre-type the vector for you.
-# Arguments:
-#   vector = Input vector
-#   recodes = a named vector (eg. c("recoded value" = "original value")) for the recode-pair transformations you want to conduct.
-# --------------------------------------------------------------------------------------------
-recode_vector = function(vector, recodes) {
-  if(!is.null(recodes)) {
-    recode_table = as.data.frame(recodes) %>% 
-      mutate(new = row.names(.)) %>% 
-      remove_rownames()
-    as.data.frame(vector) %>% 
-      left_join(recode_table, by = c("vector" = "recodes")) %>% 
-      mutate(new = ifelse(is.na(new), vector, new)) %>% 
-      .$new
-  } else {
-    return(vector)
-  }
-}
+
+
 
 
 
