@@ -26,6 +26,7 @@
 
 # Gotta have some libraries...
 library(tidyverse)
+library(clipr)
 library(DT)
 library(patchwork)
 
@@ -68,8 +69,8 @@ wrap.labels <- function(x, len) {
 # ---------------------------------------------------------------------
 # Because copying out of an R dataframe in to Excel is, for reasons beyond my comprehension, not built-in.
 # ---------------------------------------------------------------------
-cb <- function(df, sep="\t", dec=".", max.size=(200*1000)) {
-  write.table(df, paste0("clipboard-", formatC(max.size, format="f", digits=0)), sep=sep, row.names=FALSE, dec=dec)
+cb <- function(df) {
+  clipr::write_clip(df)
 }
 
 # Paste a table you just copied in Excel into R (Credit: https://www.youtube.com/watch?v=4Y_UhaZj-5I)
@@ -79,6 +80,8 @@ cb <- function(df, sep="\t", dec=".", max.size=(200*1000)) {
 cb.read = function(sep="\t", header=TRUE) {
   read.table("clipboard", sep=sep, header=header, colClasses = "character", check.names = FALSE)
 }
+
+
 
 # Set values - so I can adjust labels or values while still in a pipe.
 # --------------------------------------------------------------------------------------------
@@ -452,14 +455,15 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
 #   output_var = String to name the variable assignment for the output.
 #   HeadingLvl = How many #'s to include as part of the rendered tabsets.
 #   tab_recodes = Same as row_recodes above, but for the names of the categories / tabs people will click on. Specify a named vector to recode.
+#   Questions_df = Specify your questions dataframe (Q = Column name, Text = Question text)
 #
 # Remember to include a knit command below your chunk to render the output after running this!
 # Example: `r paste(knit(text = out), collapse = '\n')`
 # ------------------------------------------------------------------------------------------------------------
-ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weight", Demos, Tabs, Params, row_recodes = NULL, sort = NULL, order = NULL, output_var = "out", HeadingLvl = 4, tab_recodes = NULL) {
-  labels = filter(Questions, grepl({{Q}}, Q))[,-3] %>%
+ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weight", Demos, Tabs, Params, row_recodes = NULL, sort = NULL, order = NULL, output_var = "out", HeadingLvl = 4, tab_recodes = NULL, Questions_df = "Questions") {
+  labels = get(Questions_df) %>%
     mutate(labels = gsub(".*-\\s", "", .$Text[which(.$Q == Q)])) %>%
-    .[,-2]
+    select(Q, labels)
   if(is.null(tab_recodes)) Categories = unique(labels$labels) else Categories = recode(unique(labels$labels), !!!tab_recodes)
   out = NULL
   for (c in Categories) {
@@ -483,6 +487,8 @@ ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weig
 # name prefix (eg. 'Q7_'). It will grab all of these columns and, where a value exists, code a 1 or a 0 if a value is present
 # or not, coding rows NA if the respondent didn't complete any question of the series. (Might thereby be important that you
 # include a "none of the above" option for your survey questions - since otherwise, people disappear from the denominator.)
+# Note: Since this function was designed to work with Qualtrics data, it is sensitive (by design) about commas. If you have
+# commas in your responses, make sure they are not trailing and that categories are *comma-no-space* separated.
 # Arguments:
 #   label = Set your own prefix (eg. "abc" = "abc_item") for the output; otherwise, the current prefix will be preserved. Setting to "" removes all prefixes.
 # --------------------------------------------------------------------------------------------
@@ -502,7 +508,7 @@ MultiCoding <- function(data, Q, label = NULL) {
   } else {
     message(paste0("MultiCoding() - Creating dummy vairables for response options - Single-response question (", Q, ")"))
     for (i in 1:length(resp)) {
-      dummies[,i] <- ifelse(data$Q == resp[i], 1, 0)
+      dummies[,i] <- ifelse(trimws(data$Q) == resp[i], 1, 0)
     }
   }
   colnames(dummies) <- paste0(rep(label, length(resp)), resp)
@@ -587,13 +593,13 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
 # Arguments:
 #   Q_prefix_quoted = The prefix of the question battery you're wanting to summarize, eg. "Q10" refers to "Q10_1, _2, etc."
 #   Weight_var_in_Quotes = Weighting variable. Required.
-#   freq = Set to TRUE to return frequency counts instead of row percents (default, FALSE)
-#   round_freq = Round frequencies / counts to integers
-#   Questions_df = Specify your "Questions" dataset. If you don't have a "Questions" dataset, set to NULL or FALSE - this will skip looking up the category text.
+#   freq = FALSE; set to TRUE to return frequency counts instead of row percents
+#   round_freq = TRUE; round frequencies / counts to integers
+#   Questions_df = Questions; Specify your "Questions" dataset. If you don't have a "Questions" dataset, set to NULL or FALSE - this will skip looking up the category text.
 #     > Questions is supposed to be a dataframe with the following columns (In Qualtrics output, this is the first two rows of an excel export):
 #       + Q = The column name in the reference dataset
-#       + Text = The actual question text
-#   contains = TRUE, Whether to try to grab the entire battery or only use the "Q_prefix_quoted" as one question.
+#       + Text = The actual question text (for labelling)
+#   contains = TRUE, Whether to try to grab the entire battery (using contains()) or only use the "Q_prefix_quoted" as one question.
 # --------------------------------------------------------------------------------------------
 battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = FALSE, round_freq = TRUE, Questions_df = Questions, contains = TRUE) {
   if (is.null(Weight_var_in_Quotes)) { 
