@@ -1,8 +1,16 @@
 ---
 title: "Demonstrating Some Survey Data Functions"
 author: "Fraser Hay"
-date: "Last Updated: 01/27/2022"
-output: html_document
+date: "Last Updated: 06/02/2022"
+output: 
+  html_document:
+    df_print: paged
+    toc : true
+    toc_float: true
+    depth: 3
+    number_sections: true
+    css: StyleSheet.css
+    
 ---
 
 ```{r setup, include=FALSE}
@@ -16,75 +24,118 @@ data = mpg
 
 These functions are basically all designed to deal with categorical data, mainly because we typically deal with nominal/ordinal data from Qualtrics.
 
+# Data
+
+For some of these examples I'll be using the `mpg` dataset.
+
+`r mpg`
+
 <br>
 
-## Frequency Table, Weighted
+# Frequency Table, Weighted
 
-A frequency table that takes weights into account, if specified.
+`ftw()` is a frequency table that takes weights into account, if specified.
+
+<br>
 
 ```{r, message=FALSE}
-ftw(data, "manufacturer")
-# Because no weight variable is specified, weights for all observations are 1.
 x = ftw(data, "manufacturer")
+# Note: because no weight variable is specified, weights for all observations are set to 1.
+x
 ```
-
-It appears that `r pct_format(x[1,3], decimals = 1)` of the observations in the mpg dataset relate to `r x[1,1]` cars.
 
 <br>
 
-## Frequency Graph - Simple
+It appears that **`r pct_format(x[1,3], decimals = 1)`** of the observations in the `mpg` dataset relate to **`r x[[1,1]]`** cars.
+
+<br>
+
+# Frequency Graph - Simple
+
+`frq_g_simple` is for quick and simple graphs based on the output of `ftw()`.
+
+<br>
 
 ```{r, fig.height=5.5}
 frq_g_simple(x, "A Simple Graph of mpg manufacturers")
 ```
 
-As most of us tend to do, I'm supposing: for frq_g_simple() we came up with a ggplot config that we liked, parameterized a few key aspects, and just kept using it over and over again.
+<br>
+
+`frq_g_simple()` follows what is probably a familiar trend among users learning R: we came up with a ggplot config/aesthetic that we liked and kept using it over and over by making parameterizing a few key aspects and making it into a function.
 
 <br>
 
-## Crosstabulation
+# Crosstabulation {.tabset}
 
-Cross-tabs are basically our bread and butter - we employ them on virtually every question we report on. Mostly this is because our international department - for good reasons, typically - knows their students tend to differ from their domestic counterparts.
+I don't know about you, but crosstabulations are basically our bread and butter - we employ them on virtually every question we report on. Mostly this is because we know some groups of students (eg. international students) tend to differ from their domestic counterparts.
 
-But back to the data at-hand, about cars.
+But back to the data at-hand, about cars. `ct()` is what makes this happen - provide two variables and it'll see how they intersect.
+
+<br>
 
 ```{r, message=FALSE}
 ct(data, "year", "class")
 ```
 
+<br>
+
 It looks like SUVs were notably more popular in 2008. 
 
-But what percentage of our data was that?
-
-```{r, message=FALSE}
-# You have two choices to get row percents. One is in the ct() call.
-ct(data, "year", "class", pct = TRUE)
-# Or you can call row_percents() on the ct() base frequency output.
-row_percents(ct(data, "year", "class"))
-y = ct(data, "year", "class", pct = TRUE) %>% 
-  .[3,"suv"]
-```
-
-`r pct_format(y, decimals = 1)` of the 2008 sample were SUVs.
+But what *percentage* of our data was that, you ask? You have two choices to get row percents.
 
 <br>
 
-## Crosstabulation: Rendering
+## Within the `ct()` call {-}
 
-Crosstabs are far more interesting in our "patented" ctable() DT rendering, since then you can see chi-square colouring, as we like:
+```{r, message=FALSE}
+# One is in the ct() call.
+t = ct(data, "year", "class", pct = TRUE)
+t
+```
 
-```{r}
+<br>
+
+`r pct_format(t[3,"suv"], decimals = 1)` of the 2008 sample were SUVs.
+
+<br>
+
+## Using `row_percents()` {-}
+
+```{r, message=FALSE}
+# Or you can call row_percents() on the ct() base frequency output. It assumes everything but the first column is supposed to be switched to row percentages.
+t = row_percents(ct(data, "year", "class"))
+t
+```
+
+<br>
+
+`r pct_format(t[3,"suv"], decimals = 1)` of the 2008 sample were SUVs.
+
+<br>
+
+# Crosstabulation: Rendering
+
+Crosstabs are far more interesting in our "patented" `ctable()` (`DT::datatable`) rendering, since then you can see chi-square colouring, as we like:
+
+<br>
+
+```{r, warning=FALSE}
 x = ct(data, "year", "cyl") # Let's look at year models by cylinder count.
 ctable(x)
 ```
+
+<br>
 
 Looks like 8-cylinders were more popular in 2008 than would be expected, based on chi-square. *Wow. Such amaze.*
 
 <br>
 
-## Crosstabulation: Tabset {.tabset}
+# Crosstabulation: Tabset {.tabset}
 
-One last thing to demonstrate is the ct_tabset_dt() function. As I mentioned, we do a lot of these crosstabs. So many that we like to loop through our key demos and show the distribution of the responses based on them. The ct_tabset_dt() is designed to save me a lot of copy-pasting-with-slight-tweaks. You tell it how to generate a single crosstab (for a ctable() rendering), and it repeats it for all of your demos, with each product on its own tab. (Note, this code chunk is marked {.tabset}, and the message that appears below the function call is built-in for reference.)
+One last thing to demonstrate is the `ct_tabset_dt()` function. As I mentioned, we do a lot of these crosstabs. So many that we like to loop through our key demos and show the distribution of the responses based on them. The `ct_tabset_dt()` is designed to save me a lot of copy-pasting-with-slight-tweaks. You tell it how to generate a single crosstab (for a `ctable()` rendering), and it repeats it for all of your demos, with each product on its own tab. (Note, this code chunk is marked `{.tabset}`, and the message that appears below the function call is built-in for reference.)
+
+<br>
 
 ```{r, warning=FALSE}
 # Just need to do some setup here.
@@ -92,20 +143,30 @@ Demos = c("cyl", "class", "drv")
 Tabs = c("By Cylinder Count", "By Car Class", "By Drivetrain")
 Params = c("Col1Name = 'Cylinders', chi2 = FALSE", "Col1Name = 'Car Class', chi2 = FALSE", "Col1Name = 'Drivetrain Type', chi2 = FALSE")
 
-ct_tabset_dt("ct(data,x,'year')",Demos, Tabs, Params, HeadingLvl = 3)
+ct_tabset_dt("ct(data,x,'year')",Demos, Tabs, Params, HeadingLvl = 2)
 ```
 
 `r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\n')`
 
-## {-}
+# {-}
 
-Fancy, eh?
+```{css, echo = FALSE}
+/* Don't mind me... But whenever you make a placeholder header like above (to force-close a tabset), you generate an empty entry in the table of contents listing on floating ToC documents like I have here. So I'm just going to hide that line... */
+#tocify-header7 > li {
+  display: none
+}
+
+```
+
+Fancy, eh? And sometimes I even have to loop `ct_tabset_dt()`'s together, using `ct_tabset_dt_battery()` function. Did I mention we make a lot of these crosstabs?
 
 <br>
 
-## Multi-Coding
+# Multi-Coding
 
-This function was designed (by Mark Kane) in response to the troublesome approach of Qualtrics to multiple-response questions: it includes all of the selections of a respondent *in a comma-no-space-separated list*. The MultiCoding() function therefore tries to detect and split out these categorical multi-selects into dummy variables that you can then work with. This function is actually useful in a variety of contexts where we want to quickly create dummy variables. The mc_**ftw()** and mc_**ct()** functions are similar to the base versions (ftw, ct), but are built using MultiCoding output. ct() eventually moved over to use MultiCoding as the core tabulation method under the hood to ensure that all data gets summarized.
+This very important function was designed (by Mark Kane) in response to the troublesome approach of Qualtrics to multiple-response questions: it includes all of the selections of a respondent *in a comma-no-space-separated list*. The `MultiCoding()` function therefore tries to detect and split out these categorical multi-selects into dummy variables that you can then work with. This function is actually useful in a variety of contexts where we want to quickly create dummy variables. The `mc_`**`ftw()`** and `mc_`**`ct()`** functions are therefore similar to the base versions (`ftw`, `ct`), but are built using `MultiCoding` output. `ct()` eventually moved over to use `MultiCoding` as the core tabulation method under the hood to ensure that all data gets summarized.
+
+<br>
 
 ```{r}
 data = tibble(
@@ -129,14 +190,17 @@ x = mc_ftw(data, "Multi_select", return_N = TRUE) # return_n provides the actual
 frq_g_simple(x[[1]], "Graphing a Multi-select Question", Custom_N = x[[2]]) # Which we can then utilize for the actual N in this graph...
 ```
 
+<br>
+
 And now for a crosstabulation - What is the Gender of those who select A's?
+
+<br>
 
 ```{r, message=FALSE, warning=FALSE}
 # Generate some Gender data...
 data = bind_cols(data, tibble(c("F", "M", "M", "M", "M", "F", "M", "F", "F")))
 names(data) = c("Multi_select", "Gender")
 
-MultiCoding(data, "Multi_select")
 # But ctable() looks so much better...
 x = mc_ct(data, "Multi_select", "A", "Gender", label_1 = "Type A", label_0 = "Not Type A")
 ctable(x, Col1Name = "Gender")
@@ -144,13 +208,15 @@ ctable(x, Col1Name = "Gender")
 
 <br>
 
-## Battery Questions & Graphs
+# Battery Questions & Graphs
 
-Often we use question batteries / matricies in our surveys, where students are asked to agree-disagree or express satisfaction to a number of things at a time using the same scale. The data that comes from Qualtrics then includes all of these questions, with the question text and the response option, as part of the column headers. It's in that context that we created our battery_ftw() and frq_g_battery() functions.
+Often we use question batteries / matricies in our surveys, where students are asked to agree-disagree or express satisfaction to a number of things at a time using the same scale. The data that comes from Qualtrics then includes all of these questions, with the question text and the response option, as part of the column headers. It's in that context that we created our `battery_ftw()` and `frq_g_battery()` functions.
 
-For this example, let's see the multi-selects we were fooling around with above in a graph. To do this, we'll use the battery_ftw() function, which works best given a "Questions" dataframe. Allow me to demonstrate what that might look like by defining one below. Again, this approach is based on the way Qualtrics data tends to come down, and how we've attempted to "efficiently" deal with these situations. (We typically create a "Questions" dataframe for reference as a data-cleaning step before we work with the results.)
+For this example, let's see the multi-selects we were fooling around with above in a graph. To do this, we'll use the `battery_ftw()` function, which works best given a "Questions" dataframe. Allow me to demonstrate what that might look like by defining one below. Again, this approach is based on the way Qualtrics data tends to come down, and how we've attempted to "efficiently" deal with these situations. (We typically create a "Questions" dataframe for reference as a data-cleaning step before we work with the results.)
 
-```{r}
+<br>
+
+```{r, warning=FALSE}
 Questions = data.frame(Q = c("Multi_select_A",
                              "Multi_select_B",
                              "Multi_select_C",
@@ -169,29 +235,56 @@ y = battery_ftw(x, "Multi_select") %>%
   rename("Not in Category" = `0`, "In Category" = `1`) # Normally I wouldn't need to rename them, as the values would be the categories in the question; but MultiCoding(), which created my data, just creates dummies, 0/1.
 ```
 
+<br>
+
 And now the graph.
 
-```{r}
+<br>
+
+```{r, warning = FALSE}
 # The last two arguments are purely for aesthetics
 frq_g_battery(y, "Category Distribution", N_mode = FALSE, Legend_Rows = 1, Legend_Padding = 30) 
 ```
 
 <br>
 
-## Historgram
+# Overlap Graph
+
+Occasionally people want to see a cross-tabulation in a graph format. Here's one idea for doing that.
+
+<br>
+
+```{r, fig.height=4}
+ct(mpg, "year", "drv")[-1,] %>% # Note: using [-1,] to remove 'overall' summary line
+  frq_g_overlap("Drivetrain by Year", spacing = 0.2, bar_width = 0.33, border = T, Fcolour = "Greens", label_font_size = 5)
+```
+
+# Histogram
 
 After making a few histograms to summarize course feedback results (meanscores), I randomly decided to build a histogram function. So here's an example. Let's look at highway MPG ratings for cars in 2008.
+
+<br>
 
 ```{r}
 data = filter(mpg, year == 2008)['hwy']
 # Obviously needs some work, but it's functional for now.
-histo(data, hwy, start = 10, stop = 38, bins = 25, discrete = F, title = "City MPG in 2008")
-
+histo(data, hwy, title = "City MPG in 2008")
 ```
+
+<br>
+
+And by frequency: 
+
+<br>
+
+```{r}
+histo(data, hwy, title = "City MPG in 2008", frq = T)
+```
+
 
 <br><br>
 
 ***Questions or comments?*** <br>
 Email me: fhay(at)conestogac.on.ca
 
-<br><br><br><br><br><br><br><br>
+<br><br><br>

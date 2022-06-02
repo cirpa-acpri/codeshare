@@ -1,0 +1,237 @@
+body {
+	zoom: 110%;
+	 background-color: #ddd;
+}
+
+/* Make the main container bigger */
+div.main-container {
+  max-width: 86% !important;
+  margin-left: 1% !important;
+  margin-right: auto;
+  padding-left: 0px
+}
+
+/* Move main-container left by shrinking ToC space */
+div.col-xs-12 col-sm-4 col-md-3 {
+	width: 22%;
+}
+
+/* Shadow on far right side of main container space */
+.row {
+	box-shadow: 1px 2px 10px #535353;
+}
+
+/* Adding proper 3rd (and therefore adjusting 4th) level indents to ToC */
+li.tocify-item:nth-child(4) {
+	text-indent: 30px;
+}
+
+ul.tocify-subheader:nth-child(5) {
+	text-indent: 40px;
+}
+
+/* ToC modifications */
+.tocify {
+	width: 20%;
+	max-height: 90%;
+	overflow: auto;
+	margin-left: 2%;
+	position: fixed;
+	border: none;
+	border-radius: unset;
+}
+
+.tocify ul, .tocify li {
+  line-height: 25px;
+  background-color: #ddd;
+}
+
+div.tocify {
+	width: 20%;
+	max-width: 100% !important;
+	max-height: 85%;
+}
+
+.container-fluid {
+	padding-right: 15px;
+	padding-left: 15px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.list-group-item.active {
+	background-color: #6a91b3;
+	box-shadow: 0px 0px 8px #8e8e8e;
+}
+
+.list-group-item:hover {
+	background-color: #c1c1c1;
+}
+
+/* ToC divider */
+.toc-content {
+  padding-left: 4%;
+  padding-right: 4%;
+  background-color: white;
+  border-left: 1px solid #a8a8a8;
+  box-shadow: -5px 2px 5px #9f9f9f;
+}
+
+/* Spacing of various heading levels */
+h1, .h1, h2, .h2, h3, .h3 {
+    padding-top: 60px;
+	border: 0;
+	border-top-color: currentcolor;
+	border-top-style: none;
+	border-top-width: 0px;
+	border-top: 1px solid #eee;
+}
+
+h1, .h1, h2, .h2 {
+    margin-bottom: 20px;
+}
+
+h3, .h3 {
+    margin-top: 25px;
+}
+
+/* Report body text font size */
+body {
+	font-size: 19px;
+}
+
+/* Smaller font size for lower-level headings */
+h5, h4 {
+    font-size: 24px;
+}
+
+/* Extra space after section numbers for headings 1-3 */
+h1 span.header-section-number, h2 span.header-section-number, h3 span.header-section-number {
+	margin-right: 25px;
+}
+
+/* The big blue title header - formatting and space adjustment (below)*/
+#header {
+   background-color: #977845;
+  	color: white;
+  	border-radius: 35px;
+  	text-align: center;
+  	box-shadow: 0 3px 6px black;
+  	text-shadow: 2px 2px black;
+	margin-top: 25px;
+	margin-bottom: 75px;
+	padding-bottom: 10px;
+	padding-left: 1px;
+	padding-right: 1px;
+	padding-top: 1px;
+}
+
+h1.title.toc-ignore {
+	  margin-top: 25px;
+}
+
+.title {
+	line-height: 1.5;
+	/* Just removing some h1 properties (lines and padding) for the title */
+	padding-top: 0;
+	border: none;
+}
+
+
+/* Button formatting */
+button : not ([aria-expanded]) {
+	font-size: 10px !important;
+}
+
+button.btn.collapsed {
+	border: 1px solid #80adff;
+	background-color: #c0dbf7;
+	color: #6e6e6e;
+	font-style: normal;
+	font-weight: 600;
+	font-size: 19px;
+	box-shadow: 0 3px 6px #527dcc;
+}
+
+button.btn {
+	border: 1px solid #858585;
+	background-color: #d6d6d6;
+	color: #6e6e6e;
+	font-style: italic;
+	font-weight: 600;
+	font-size: 19px;
+	box-shadow: 0 3px 6px black;
+}
+
+
+
+/* Tabs formatting */
+.nav-tabs {
+	border-bottom: 2px solid #abc5db
+}
+
+.nav-tabs > li > a {
+	margin-top: 3px;
+	margin-bottom: 1px;
+	padding: 9px 15px;
+	background-color: #f5f9ff;
+	border: 1px solid #d9e6ff;
+	border-radius: 
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+	color: #fff;
+	cursor: default;
+	background-color: #5b9cd2;
+	border-top: solid 1px white;
+	border-bottom: solid 1px #a1c5d7;
+	box-shadow: 0 2px 6px #527dcc;
+}
+
+/* Changes to tabset-pills - smaller, coloured */
+.nav-pills > li > a {
+    border-radius: 15px;
+    margin-top: 4px;
+    background-color: #f5f5f5a3;
+    border: 1px solid #8e8e8e;
+    margin-left: 2px;
+    padding: 8px 13px;
+	box-shadow: 0 3px 10px rgb(0 0 0 / 0.2);
+}
+
+.nav-pills > li.active > a, .nav-pills > li.active > a:focus, .nav-pills > li.active > a:hover {
+box-shadow: 0px 1px 9px #575757;
+}
+
+/* Removing top/bottom padding inside tab view - to make DTs show up higher */
+caption {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+/* Border for embedded things (like a PDF), if included */
+embed {
+	border: 2px solid !important;
+    border-top-color: currentcolor;
+    border-top-style: solid;
+    border-top-width: 2px;
+    border-right-color: currentcolor;
+    border-right-style: solid;
+    border-right-width: 2px;
+    border-bottom-color: currentcolor;
+    border-bottom-style: solid;
+    border-bottom-width: 2px;
+    border-left-color: currentcolor;
+    border-left-style: solid;
+    border-left-width: 2px;
+    border-image-outset: 0;
+    border-image-repeat: stretch;
+    border-image-slice: 100%;
+    border-image-source: none;
+    border-image-width: 1;
+}
+
+/* Because for some reason DTs don't default to 100% of the doc width. */
+[class*="dataTable"] {
+	width: 100% !important;
+}

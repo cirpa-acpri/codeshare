@@ -1,10 +1,10 @@
 # Survey Data Functions
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # For working with data and surveys from Qualtrics
 
 # By: Fraser Hay, Conestoga College
 # With some things stolen from: Mark Kane, Conestoga College, and the Internet in general.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # These functions are probably inefficiently coded, but they seem to work. They also save me a lot of time.
 # They in part trace my slow learning / development in the R language. Feel free to suggest improvements.
@@ -22,7 +22,7 @@
 # R community on the internet / Stack Overflow, who have supplied answers to my questions over many
 # hours of Googling and head-scratching.
 
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Gotta have some libraries...
 library(tidyverse)
@@ -34,28 +34,28 @@ library(patchwork)
 options(dplyr.summarise.inform=F)
 
 # Percent Formatting
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 pct_format = function(value, decimals = 0) {
   ifelse(!is.na(value), sprintf(paste0("%.", decimals, "f%%"), (value * 100)), NA)
 }
 
 # Comma-Number Formatting
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 n_format = function(n, decimals = 0) {
   ifelse(!is.na(n), formatC(n,format="f", big.mark=",", digits=decimals), n)
 }
 
 # Value -- Remove commas / percents, return value. Basically the reverse of pct_format / n_format.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 value = function(x) {
   x = as.character(x)
   ifelse(grepl("%", x, fixed = TRUE), parse_number(x) / 100, parse_number(x))
 }
 
 # Label Wrapping (Credit: https://stackoverflow.com/questions/20241065/r-barplot-wrapping-long-text-labels) 
-# ---------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Super useful for ensuring strings wrap at particular character counts.
-# ---------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 wrap.labels <- function(x, len) {
   if (is.list(x))
   {
@@ -66,27 +66,26 @@ wrap.labels <- function(x, len) {
 }
 
 # Copy a dataframe to paste in Excel (Credit: https://stackoverflow.com/questions/24704344/copy-an-r-data-frame-to-an-excel-spreadsheet)
-# ---------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Because copying out of an R dataframe in to Excel is, for reasons beyond my comprehension, not built-in.
-# ---------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 cb <- function(df) {
   clipr::write_clip(df)
 }
 
 # Paste a table you just copied in Excel into R (Credit: https://www.youtube.com/watch?v=4Y_UhaZj-5I)
-# ---------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # As above, this should be built-in... Example usage: 1) Copy data with headers in Excel. 2) data = cb.read()
-# ---------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 cb.read = function(sep="\t", header=TRUE) {
   read.table("clipboard", sep=sep, header=header, colClasses = "character", check.names = FALSE)
 }
 
 
-
 # Set values - so I can adjust labels or values while still in a pipe.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Useful programmatic example: set(which(data$student_fee == "Regular"), 2, "Domestic")
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set = function(df, r, c, value) {
   df[r, c] = value
   ungroup(df) # This is basically because occasionally the output comes back grouped? No idea why.
@@ -94,17 +93,18 @@ set = function(df, r, c, value) {
 }
 
 # (F)requency (T)able, (W)eighted
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Creates a basic frequency table (with percentages) based on a categorical question. Sorts by count.
 # Arguments:
 #   count_round = Whether you want counts rounded to whole numbers.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ftw = function(df, question, weight, count_round = TRUE) {
   question = if("try-error" %in% class(try(class(question), silent = TRUE))) deparse(substitute(question)) else sym(question) # Accept both `var` (deparse/substitute) and "var" (sym).
   if(missing(weight)) { weight = NULL } else { if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else { weight = sym(weight) } } # Accept both `var` (deparse/substitute) and "var" (sym) - and if not specified, revert to NULL.
   df = df %>% 
     { if (is.null(weight)) 
-      select(., question) %>% mutate(., w = 1) # If no weight, weights default to 1.
+        select(., question) %>% mutate(., w = 1) # If no weight, weights default to 1.
       else 
         select(., question, weight) %>% rename(., w = weight) } %>% # Select weight
     rename(resp = question) %>% 
@@ -121,7 +121,7 @@ ftw = function(df, question, weight, count_round = TRUE) {
 
 
 # (C)ross (T)abulation
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Creates a simple crosstab count table from two variables. Updated in Dec. 2021 to account for Qualtrics multi-coding (comma-no-space-separated) stuff. As a result:
 # Function Dependencies: Mark's MultiCoding function.
 # Arguments:
@@ -133,9 +133,8 @@ ftw = function(df, question, weight, count_round = TRUE) {
 #   sort = TRUE; Returns the columns ordered highest (n) to lowest. Alternately specify a label vector for the column ordering. FALSE returns as-is.
 #   order = NULL; Specify a vector of row labels to return the categories in that order.
 #   row_recodes = NULL; Specify a named vector (eg. c("New" = "Original")) to recode row categories.
-# --------------------------------------------------------------------------------------------
-ct = function(data, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE, order = NULL, row_recodes = NULL) {
-  df = data
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ct = function(df, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE, order = NULL, row_recodes = NULL) {
   x = MultiCoding(df, cols_quoted, label = "x")
   y = MultiCoding(df, rows_quoted, label = "y")
   data = {if (is.null(Weight_var_in_Quotes)) bind_cols(x, y, weight = 1) else bind_cols(x, y, select(df, Weight_var_in_Quotes) %>% rename(weight = Weight_var_in_Quotes))} %>% 
@@ -209,12 +208,12 @@ ct = function(data, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct =
 }
 
 # Row Percents
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Transforms a frequency table input to row percentages. Remember ct() above can also do this.
 # Arguments:
 #   Col1Cats = Whether the first column is the categories. Set to FALSE if not. 
 #   count = Whether you want a count column maintained - either as column 1, or column 2 if Col1Cats = TRUE.
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 row_percents = function(df, Col1Cats = TRUE, count = FALSE) {
   if (Col1Cats == FALSE) {
     df = df %>% 
@@ -245,11 +244,11 @@ row_percents = function(df, Col1Cats = TRUE, count = FALSE) {
 }
 
 # Column Percents
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Transforms a frequency table input to column percentages.
 # Arguments:
 #   Col1Cats = Whether the first column is the categories. Set to FALSE if not. 
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 col_percents = function(df, Col1Cats = TRUE) {
   if (Col1Cats == TRUE) {
     mutate(df, across(.cols = -1,  ~ ./sum(., na.rm = TRUE)))
@@ -259,7 +258,7 @@ col_percents = function(df, Col1Cats = TRUE) {
 }
 
 # (C)rosstabulation (Table) Rendering
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Renders output from the ct function above, optionally with chi-square test (if supplied frequency counts).
 # Arguments:
 #   Col1Name = Name of the table's 1st column - typically the demo / category title
@@ -271,7 +270,7 @@ col_percents = function(df, Col1Cats = TRUE) {
 #   title = Specify a title for the top of your table.
 #   font = Font size for the table container.
 #   scrollX = If your table is very wide, use this to add a scroll-bar so it doesn't spill. Also activates DT's fixedColumns option (first column stays put when scrolling), and disables data bars for the first column (which show N-sizes) (this is because the data bars work by filling the bar with the colour and making the end of the bar transparent) 
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%", chi2 = TRUE, freq = FALSE, decimals = NULL, title = "", font = "15", scrollX = FALSE) {
   # Assign Col1Name, if not default to supplied variable title
   if (!is.null(Col1Name)) { names(df)[1] = Col1Name } 
@@ -384,7 +383,7 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
 
 
 # (C)ross(t)abulation (Tabset) for (D)ata(t)ables
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Generates the knit code (and related materials) to create a dynamically-defined series of tabs with ctable() renderings.
 # It does this by committing two supposed cardinal sins of programming: a) interpreting a string (that you pass) as code (for generating the 
 # data behind the ctable() calls); and b) assigning a static global variable - but at least you can specify the name!
@@ -406,7 +405,7 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
 # for (i in 1:length(ct.dt.out[['dt']])) {print(ct.dt.out[['dt']][[i]])}
 # --- Include knit command *in-text* below for rendering (remember to end the tabset):
 # `r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\\n')`"
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL, HeadingLvl = 4, output = FALSE, assign = "ct.dt.out") {
   if (is.null(Params)) Params = rep("", length(Demos))
   output_raw = list() # List for the raw tables
@@ -436,7 +435,7 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
 
 
 # (C)ross(t)abulation (Tabset) for (D)ata(t)ables - (Battery) Edition
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # This is basically a fancy way of looping ct_tabset_dt() calls. This approach is used when I want to make the crosstabs for a battery-type question
 # without needing to iterate over each question. The result of the call is a series of output elements from the various ct_tabset_dt's and a single
 # output vector of knit code, to be used for showing it all in your .rmd. I typically make the holding section a .tabset-pills.
@@ -459,7 +458,7 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
 #
 # Remember to include a knit command below your chunk to render the output after running this!
 # Example: `r paste(knit(text = out), collapse = '\n')`
-# ------------------------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weight", Demos, Tabs, Params, row_recodes = NULL, sort = NULL, order = NULL, output_var = "out", HeadingLvl = 4, tab_recodes = NULL, Questions_df = "Questions") {
   labels = get(Questions_df) %>%
     mutate(labels = gsub(".*-\\s", "", .$Text[which(.$Q == Q)])) %>%
@@ -481,7 +480,7 @@ ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weig
 
 
 # Mark's MultiCoding Function, for multi-response questions from Qualtrics (comma-separated options).
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Credit: Mark Kane, Conestoga College
 # Used for multiple-response questions (from Qualtrics) where each option is a separate column, but shares a common column
 # name prefix (eg. 'Q7_'). It will grab all of these columns and, where a value exists, code a 1 or a 0 if a value is present
@@ -491,7 +490,7 @@ ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weig
 # commas in your responses, make sure they are not trailing and that categories are *comma-no-space* separated.
 # Arguments:
 #   label = Set your own prefix (eg. "abc" = "abc_item") for the output; otherwise, the current prefix will be preserved. Setting to "" removes all prefixes.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 MultiCoding <- function(data, Q, label = NULL) {
   label <- ifelse(is.null(label),paste0(Q,"_"),ifelse(label == "", "", paste0(label,"_")))
   data <- select(data, all_of(Q)) %>% 
@@ -516,14 +515,14 @@ MultiCoding <- function(data, Q, label = NULL) {
 }
 
 # (M)ulti(C)oding (F)requency (T)able, (W)eighted - Default sort is by count.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Makes a count frequency table from a multiple-response question (from Qualtrics). 
 # Function Dependencies: Mark's MultiCoding function.
 # Default raw_mode (FALSE) takes the default Qualtrics output of a comma-separated-mulit-response "Q" and calls MultiCode to get an array of dummies that it then summarizes, using the weights supplied.
 # Modified raw_mode (TRUE) ignores weight calculations - simply creates a frequency table based on supplied values in the df - they need to be numbers that can be summed. N = number of rows.
 #   > Often used for qualitative coding outputs.
 # return_N: Sometimes for graphs you need to get an N out of here - as in, how many people answered these multi-select questions in any fashion. For this, use the return_N feature (set to TRUE).
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 mc_ftw = function(df, Q = NULL, Weight_var_in_Quotes = NULL, raw_mode = FALSE, return_N = FALSE) {
   if (raw_mode == FALSE) {
     mc = MultiCoding(df, Q)
@@ -561,7 +560,7 @@ mc_ftw = function(df, Q = NULL, Weight_var_in_Quotes = NULL, raw_mode = FALSE, r
 }
 
 # (M)ulti(C)oding (C)ross(t)abulation - Because I do this too often to not have a function.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Basically just handles a specific selection of a demographic and weighting variable (required) and a column from a MultiCoding call,
 # running a CrossTabulation [ct()] call for them.
 # Function Dependencies: Mark's MultiCoding function, ct().
@@ -569,7 +568,7 @@ mc_ftw = function(df, Q = NULL, Weight_var_in_Quotes = NULL, raw_mode = FALSE, r
 #   First few are pretty self-explanatory, excepting...
 #   Item_from_Q_in_quotes is the actual column title. You may need to run a {MultiCoding(df, Question_in_quotes} to get this straight.
 #   label_1 / label_0 = What you want 1 or 0 to be titled in the output.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, Weight_var_in_Quotes = NULL, label_1 = "Yes", label_0 = "No") {
   if (is.null(Weight_var_in_Quotes)) { 
     temp = select(df, Demo_in_quotes) %>% 
@@ -585,7 +584,7 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
 }
 
 # (Battery) Question (F)requency (T)able, (W)eighted
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Takes your question battery eg. ("Q10" refers to "Q10_1, _2, etc.") and makes it into a frequency table.
 # It's important that you then view said table and re-arrange it properly for the rendering in frq_g_battery().
 # * For best results, needs access to a "Questions" dataframe in order to get the category text, since that needs to be added for the output to be useful. This is an artifact of how Qualtrics encodes question-battery category text into the column headers.
@@ -600,7 +599,7 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
 #       + Q = The column name in the reference dataset
 #       + Text = The actual question text (for labelling)
 #   contains = TRUE, Whether to try to grab the entire battery (using contains()) or only use the "Q_prefix_quoted" as one question.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = FALSE, round_freq = TRUE, Questions_df = Questions, contains = TRUE) {
   if (is.null(Weight_var_in_Quotes)) { 
     temp = { if (contains) select(df, contains(Q_prefix_quoted)) else select(df, Q_prefix_quoted) } %>% 
@@ -643,7 +642,7 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
 }
 
 # (Fr)e(q)uency (G)raph, (Simple)
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Makes a simple horizontal bar graph.
 # Function Dependencies: wrap.labels, pct_format
 # Requires a frequency table with dimensions: "resp" [category], and either "count" or "pct" [n, decimal]
@@ -661,9 +660,10 @@ battery_ftw = function(df, Q_prefix_quoted, Weight_var_in_Quotes = NULL, freq = 
 #   pos = Function for positioning text labels. Eg. position_nudge(x = 0, y = 0.05)
 #   border = TRUE; the colour you want the border to be, if applicable. Default is black. Disable with NULL.
 #   width = How thick do you want the bars? (In %, basically.)
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, subtitle = NULL, scale = "pct", decimals = 0, colour = "#6baed6", pos = position_stack(vjust = 0.9), border = TRUE, width = 0.8) {
-  df = df %>%  
+  df = df %>% 
+    rename(resp = 1) %>% 
     mutate(resp = wrap.labels(resp, Cat_wrap_length))
   if(!"pct" %in% colnames(df)) {
     df = df %>% mutate(pct = count / sum(count, na.rm = TRUE))
@@ -692,7 +692,7 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 }
 
 # (Fr)e(q)uency (G)raph, (Battery)
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Creates a stacked bar chart.
 # Function Dependencies: wrap.labels
 # Required input: a frequency table with dimensions: "resp" [category], "count" [n], and a column with the percentages [decimals] for each response option, properly labelled with the complete response text.
@@ -711,7 +711,7 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 #   decimals = Number of decimals to include for percentage rounding.
 #   border = TRUE; Set a single border colour for all categories / bars in the stack. Default is black. Disable with NULL.
 #   divergent = NULL; This reorganizes the stack to a "divergent" set-up, with bars opposing each other from a central axis line. You'll need to supply a list of two vectors: 'left' and 'right', containing the quoted names of the columns you want on each side of the line, in order. Only those columns (bars) will be returned. Eg: divergent = list(left = c("Poor", "Fair"), right = c("Good", "Excellent")) -- Credit: Mark Kane, who came up the proof-of-concept here.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = TRUE, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = TRUE, divergent = NULL) { 
   if("try-error" %in% class(try(select(df, count, resp), silent = TRUE))) stop('This function requires a dataframe with columns "resp" (categories) and "count" (n). Supplied dataframe is incomplete.') # Error-checking the dataframe
   # N-mode labeling
@@ -766,8 +766,9 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
 
 
 # (Fr)e(q)uency (G)raph, (Overlap)ped
-# --------------------------------------------------------------------------------------------
-# Creates a "grouped" bar chart where there's the ability to overlap them. 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Creates a "grouped" bar chart where there's the ability to overlap them. Note: by default, this function only accommodates up to data 5 columns. But
+# you could probably hotwire it to accomodate as many as you like by inspecting the geom_bar/geom_text calls.
 # Function Dependencies: wrap.labels
 # Required input: a frequency table with dimensions: "resp" [category], and a column with the counts (or percentages) for each response option.
 # Arguments:
@@ -779,14 +780,17 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
 #   label_font_size = Font size of the percentage labels.
 #   bar_width = 0.4; How thick the bars should be.
 #   spacing = 0.2; Spacing between individual bars (and therefore how big category groups will be).
-# --------------------------------------------------------------------------------------------
-frq_g_overlap = function(df, title = "Chart", groups = names(df)[-1], pct = TRUE, border = "#00000060", colours = NULL, Cat_font_size = 14, Cat_wrap_length = 40, label_font_size = 4, bar_width = 0.4, spacing = 0.2) {
-  if (is.null(colours) | length(colours) != length(groups)) stop("Omission: You need to specify a vector of colours (with transparency numbers trailing, if applicable) the same length as the number of bars (specified groups) in your dataframe.")
+#   Fcolour = "Blues"; R palette being used - see https://r-graph-gallery.com/38-rcolorbrewers-palettes.html
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+frq_g_overlap = function(df, title = "Chart", groups = names(df)[-1], pct = TRUE, border = "#00000060", colours = NULL, Cat_font_size = 14, Cat_wrap_length = 40, label_font_size = 4, bar_width = 0.4, spacing = 0.2, Fcolour = "Blues") {
+  if (is.null(colours)) { colours = RColorBrewer::brewer.pal(n = (ncol(df) - 1), name = Fcolour) }
+  if (length(colours) != length(groups)) stop(paste0("Omission: You have specified colours, but you need to specify a vector of colours (with transparency numbers trailing, if applicable) *the same length as the number of bars (specified groups) in your dataframe* (Groups detected: ", length(groups), ")"))
   # Data reshaping: the function takes output similar to ct(), but ggplot needs a column for category, group, and value in this case.
   x_pos = seq(spacing, (spacing * -1), length = length(groups))
   BarData_Long = df %>%
-    { if (pct) col_percents() else . } %>% 
+    { if (pct) col_percents(.) else . } %>% 
     pivot_longer(cols = 2:ncol(df), names_to = "Group") %>% 
+    rename(resp = 1) %>% # Rename first column
     mutate(resp = wrap.labels(resp, Cat_wrap_length)) %>% 
     mutate(resp = factor(resp, levels = rev(unique(.$resp))))
   # The ggplot-call
@@ -813,7 +817,7 @@ frq_g_overlap = function(df, title = "Chart", groups = names(df)[-1], pct = TRUE
           legend.margin = margin(5, 0, 5, -100),
           axis.title.y = element_blank(),
           axis.title.x = element_blank(),
-          axis.text.y = element_text(size = cat_font_size, margin=margin(0,0,0,0)),
+          axis.text.y = element_text(size = Cat_font_size, margin=margin(0,0,0,0)),
           text = element_text(size = 14),
           plot.title = element_text(hjust = 0.5, size = 16, margin = margin(15,0,8,-990)),
           panel.background = element_blank(),
@@ -824,7 +828,7 @@ frq_g_overlap = function(df, title = "Chart", groups = names(df)[-1], pct = TRUE
 
 
 # (Histo)gram
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Currently a bit broken, needs work... I wonder if someone has done this better... :P
 # Feed in a dataframe and a numeric variable, and this function will make a histogram of it. By default, the function will attempt to figure out what's 
 # the max value of your data and make a bin for each value. Obviously for best results, you should specify some of the parameters of your data.
@@ -846,7 +850,7 @@ frq_g_overlap = function(df, title = "Chart", groups = names(df)[-1], pct = TRUE
 #   colour = Specify the colour of the bars. Defaults to light blue.
 #   title = Specify the string title over the plot.
 #   title_font = Font size of the title.
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by = NULL, discrete = TRUE, x_axis = TRUE, x_size = 12, x_pct_accuracy = 1, x_label = NULL, x_label_font = 4, frq = FALSE, y_label = NULL, data_labels = TRUE, x_labels_type = "frq", colour = "lightblue", title = NULL, title_font = 16) {
   df = select(df, {{var}}) # Select the data
   # Coerce to numeric if necessary...
@@ -858,9 +862,9 @@ histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by 
   # Define some things if not provided in the call.
   { if(is.null(start)) start = as.numeric(df %>% pull({{var}}) %>% min(na.rm = TRUE)) }
   { if(is.null(stop)) stop = as.numeric(df %>% pull({{var}}) %>% max(na.rm = TRUE)) }
-  { if(is.null(bins)) bins = ifelse(is.null(by), (stop - start), (stop - start) / by) }
-  df = filter(df, {{var}} >= start & {{var}} <= stop) # Manual value specification
-  by = stop / bins
+  { if(is.null(bins)) bins = ifelse(is.null(by), (stop - start), (stop - start) / by)}
+  { if(is.null(by)) by = ((stop - start) / bins) }
+  message(paste0("Start: ", start, " | Stop: ", stop, " | By: ", by, " | Bins: ", bins))
   df %>% 
     ggplot(aes(x={{var}})) + 
     # Have to make these layers conditionally since I can't seem to figure out how to conditionally invoke / define "bins =" vs. "breaks ="...
@@ -872,8 +876,8 @@ histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by 
     # Frequency vs. percent scales.
     { if(frq) scale_y_continuous(expand = expansion(mult = c(0, 0.13))) else scale_y_continuous(expand = expansion(mult = c(0, 0.13)), labels = scales::percent) } +
     { if(x_labels_type == "pct") scale_x_continuous(labels = scales::percent_format(scale = 100, accuracy = x_pct_accuracy), 
-                                                    breaks = seq(start, stop, by=by))
-      else if(x_labels_type == "frq") scale_x_continuous(breaks = seq(start, stop, by=by)) } + 
+                                                    breaks = seq(start, stop, by=by), minor_breaks = seq(start - (by / 2), stop + by, by=by))
+      else if(x_labels_type == "frq") scale_x_continuous(breaks = seq(start, stop, by=by), minor_breaks = seq(start - (by / 2), stop + by, by=by)) } + 
     ylab(ifelse(is.null(y_label), ifelse(frq == FALSE, "Percentage", "Count"), y_label)) +
     { if(!is.null(title)) ggtitle(title) } +
     { if(!is.null(x_label)) labs(x = x_label) } + 
@@ -883,7 +887,8 @@ histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by 
           plot.title = element_text(hjust = 0.5, size=title_font),
           panel.background = element_blank(),
           panel.grid.major.y = element_line(colour ="grey"),
-          panel.grid.major.x = element_line(colour ="grey"),
+          panel.grid.minor.x = { if(discrete) element_line(colour="grey") else element_blank() },
+          panel.grid.major.x = { if(discrete) element_blank() else element_line(colour="grey") },
           axis.ticks.y = element_blank(),
           axis.ticks.x = { if(discrete) element_blank() else element_line(colour = "gray11") },
           axis.text.x = { if(x_axis) element_text(angle=90, vjust=0.5, colour = "black", size = x_size) else element_blank() },
@@ -903,20 +908,22 @@ histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by 
 
 
 
-# --------------------------------------------------------------------------------------------
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # DEPRECIATED BUT KEPT FOR CONSISTENCY'S SAKE
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # And so my old stuff doesn't break...
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Remove percent, return number. Basically the reverse of pct_format. Use value() instead
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 pct_n = function(value) {
   parse_number(value) / 100
 }
 
 # Remove commas, return number. Basically the reverse of n_format. Use value() instead. (Credit: https://stackoverflow.com/questions/49910861/removing-comma-from-numbers-in-r)
-# --------------------------------------------------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 comma_n <- function(value) { 
   parse_number(value)
 }
