@@ -126,15 +126,16 @@ ftw = function(df, question, weight, count_round = TRUE) {
 # Function Dependencies: Mark's MultiCoding function.
 # Arguments:
 #   Weight_var_in_Quotes = Specific weighting variable, optional.
-#   pct = Set to TRUE to change output to row percentages
-#   count = Set to TRUE to return a total N for each row - usually only used in conjunction with pct.
-#   decimals = Specify an integer to round to that many places
-#   include_N = Adds "(N=)" indicator text to the first (category) column, with row totals.
+#   pct = FALSE; Set to TRUE to change output to row percentages
+#   count = FALSE; Set to TRUE to return a total N for each row - usually only used in conjunction with pct to get both worlds.
+#   decimals = NULL; Specify an integer to round to that many places
+#   include_N = TRUE; Adds "(N=)" indicator text to the first (category) column, with row totals.
+#   N_adjust = FALSE; Only for when you're crosstabbing against a multiple-response variable, toggle TRUE to return only the number of cases (by row) in the N= counts.
 #   sort = TRUE; Returns the columns ordered highest (n) to lowest. Alternately specify a label vector for the column ordering. FALSE returns as-is.
 #   order = NULL; Specify a vector of row labels to return the categories in that order.
 #   row_recodes = NULL; Specify a named vector (eg. c("New" = "Original")) to recode row categories.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ct = function(df, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, sort = TRUE, order = NULL, row_recodes = NULL) {
+ct = function(df, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, N_adjust = FALSE, sort = TRUE, order = NULL, row_recodes = NULL) {
   x = MultiCoding(df, cols_quoted, label = "x")
   y = MultiCoding(df, rows_quoted, label = "y")
   data = {if (is.null(Weight_var_in_Quotes)) bind_cols(x, y, weight = 1) else bind_cols(x, y, select(df, Weight_var_in_Quotes) %>% rename(weight = Weight_var_in_Quotes))} %>% 
@@ -154,8 +155,11 @@ ct = function(df, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = F
     { if (!is.null(row_recodes)) mutate(Row = recode(Row, !!!row_recodes)) else . } %>% 
     { if (!is.null(order)) arrange(., factor(Row, levels = order)) else . }
   if (include_N == TRUE) {
-    CrossTab = CrossTab %>% 
-      mutate(N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE)), Row = paste0(Row," (N = ",n_format(N),")")) %>% 
+    multi_flag = ifelse(max(unlist(lapply(strsplit(as.character(pull(df, cols_quoted)), ",(?!\\s)", perl = TRUE), length))) > 1, TRUE, FALSE)
+    if (multi_flag == TRUE & N_adjust == FALSE) message("** NOTE ** -  Multiple-response independent variable detected. In some cases you may want to use the 'N_adjust = TRUE' to make the row N= counts be the number of actual observations in each variable category. Default N= behaviour is row sums across all response options.")
+    CrossTab = CrossTab %>%
+      { if (multi_flag == TRUE & N_adjust == TRUE) bind_cols(., tibble(N = round(unname(colSums(y))))) else mutate(., N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE)))} %>% 
+      mutate(Row = paste0(Row," (N = ",n_format(N),")")) %>% 
       select(-N)
   }
   Overall = data %>%  
@@ -206,6 +210,7 @@ ct = function(df, rows_quoted, cols_quoted, Weight_var_in_Quotes = NULL, pct = F
   }
   return(Output)
 }
+
 
 # Row Percents
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -481,7 +486,7 @@ ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weig
 
 # Mark's MultiCoding Function, for multi-response questions from Qualtrics (comma-separated options).
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Credit: Mark Kane, Conestoga College
+# Original credit: Mark Kane, Conestoga College
 # Used for multiple-response questions (from Qualtrics) where each option is a separate column, but shares a common column
 # name prefix (eg. 'Q7_'). It will grab all of these columns and, where a value exists, code a 1 or a 0 if a value is present
 # or not, coding rows NA if the respondent didn't complete any question of the series. (Might thereby be important that you

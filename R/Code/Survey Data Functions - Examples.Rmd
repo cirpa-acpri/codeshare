@@ -70,7 +70,7 @@ frq_g_simple(x, "A Simple Graph of mpg manufacturers")
 
 I don't know about you, but crosstabulations are basically our bread and butter - we employ them on virtually every question we report on. Mostly this is because we know some groups of students (eg. international students) tend to differ from their domestic counterparts.
 
-But back to the data at-hand, about cars. `ct()` is what makes this happen - provide two variables and it'll see how they intersect.
+But back to the data at-hand, about cars. `ct()` is what makes this happen - provide two variables and it'll see how they intersect. It of course also allows you to specify a weighting variable, if needed.
 
 <br>
 
@@ -155,14 +155,13 @@ ct_tabset_dt("ct(data,x,'year')",Demos, Tabs, Params, HeadingLvl = 2)
 #tocify-header7 > li {
   display: none
 }
-
 ```
 
 Fancy, eh? And sometimes I even have to loop `ct_tabset_dt()`'s together, using `ct_tabset_dt_battery()` function. Did I mention we make a lot of these crosstabs?
 
 <br>
 
-# Multi-Coding
+# Multi-Coding {.tabset}
 
 This very important function was designed (by Mark Kane) in response to the troublesome approach of Qualtrics to multiple-response questions: it includes all of the selections of a respondent *in a comma-no-space-separated list*. The `MultiCoding()` function therefore tries to detect and split out these categorical multi-selects into dummy variables that you can then work with. This function is actually useful in a variety of contexts where we want to quickly create dummy variables. The `mc_`**`ftw()`** and `mc_`**`ct()`** functions are therefore similar to the base versions (`ftw`, `ct`), but are built using `MultiCoding` output. `ct()` eventually moved over to use `MultiCoding` as the core tabulation method under the hood to ensure that all data gets summarized.
 
@@ -192,25 +191,47 @@ frq_g_simple(x[[1]], "Graphing a Multi-select Question", Custom_N = x[[2]]) # Wh
 
 <br>
 
-And now for a crosstabulation - What is the Gender of those who select A's?
-
-<br>
+And now for a crosstabulation - What is the Gender of those who select A's? I've got two options for you.
 
 ```{r, message=FALSE, warning=FALSE}
 # Generate some Gender data...
 data = bind_cols(data, tibble(c("F", "M", "M", "M", "M", "F", "M", "F", "F")))
 names(data) = c("Multi_select", "Gender")
-
-# But ctable() looks so much better...
-x = mc_ct(data, "Multi_select", "A", "Gender", label_1 = "Type A", label_0 = "Not Type A")
-ctable(x, Col1Name = "Gender")
+data
 ```
 
 <br>
 
+## Using `mc_ct()` {-}
+
+```{r, message = FALSE, warning = FALSE}
+# Option 1: Use mc_ct. It's very targeted / specific. Which might be good, depending on your use case.
+x = mc_ct(data, "Multi_select", "A", "Gender", label_1 = "Type A", label_0 = "Not Type A")
+x
+
+# Though obviously the ctable() rendering looks so much better...
+ctable(x, Col1Name = "Gender")
+```
+
+## Using `ct()` {-}
+
+```{r, warning=FALSE}
+# Option 2: We can also somewhat do this - as in get the same totals - with ct() more generally, but in the present case, this might be less useful. For one, we won't be filtering just for 'A' / 'Not-A': all categories will get returned, so we can't figure out what percentage of each row population answered what way. Secondly, by default, ct()'s N= counts for each row are just row-sums. Because we have a multiple-select question in play here, we need to enable the 'N_adjust' parameter to count cases, rather than total responses, by row.
+x = ct(data, "Gender", "Multi_select", N_adjust = T)
+x
+# As you can see, we could try to divide 'A' by the N= values to get the proportion of each category like the other tab's ctable() output. This is inefficient, but just to demonstrate...
+x %>% 
+  select(1:2) %>% 
+  mutate(N = as.numeric(gsub(".*= (.+)).*", "\\1", Gender)), # Extracting the "N=" value.
+         `Not Type A` = N - A) %>% 
+  select(-N) %>% 
+  set(1,3,2) %>% # Cheating, I know, since I'm manually assigning a value here. Maybe I need to re-write this function. :P
+  ctable()
+```
+
 # Battery Questions & Graphs
 
-Often we use question batteries / matricies in our surveys, where students are asked to agree-disagree or express satisfaction to a number of things at a time using the same scale. The data that comes from Qualtrics then includes all of these questions, with the question text and the response option, as part of the column headers. It's in that context that we created our `battery_ftw()` and `frq_g_battery()` functions.
+Often we use question batteries / matrices in our surveys, where students are asked to agree-disagree or express satisfaction to a number of things at a time using the same scale. The data that comes from Qualtrics then includes all of these questions, with the question text and the response option, as part of the column headers. It's in that context that we created our `battery_ftw()` and `frq_g_battery()` functions.
 
 For this example, let's see the multi-selects we were fooling around with above in a graph. To do this, we'll use the `battery_ftw()` function, which works best given a "Questions" dataframe. Allow me to demonstrate what that might look like by defining one below. Again, this approach is based on the way Qualtrics data tends to come down, and how we've attempted to "efficiently" deal with these situations. (We typically create a "Questions" dataframe for reference as a data-cleaning step before we work with the results.)
 
@@ -282,9 +303,11 @@ histo(data, hwy, title = "City MPG in 2008", frq = T)
 ```
 
 
-<br><br>
+<br>
+
+***
+
+<br>
 
 ***Questions or comments?*** <br>
 Email me: fhay(at)conestogac.on.ca
-
-<br><br><br>
