@@ -1,6 +1,6 @@
 body {
 	zoom: 110%;
-	 background-color: #ddd;
+	background-color: #ddd;
 }
 
 /* Make the main container bigger */
@@ -164,19 +164,29 @@ button.btn {
 }
 
 
-
 /* Tabs formatting */
 .nav-tabs {
-	border-bottom: 2px solid #abc5db
+	background-color: #f5f9ff;
+	border: 1px solid #d9e6ff;
+	border-bottom: 2px solid #abc5db !important;
+	border-top: 2px solid #abc5db !important;
 }
 
 .nav-tabs > li > a {
-	margin-top: 3px;
-	margin-bottom: 1px;
-	padding: 9px 15px;
+	margin-right: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	padding: 9px 15px 10px 15px;
 	background-color: #f5f9ff;
-	border: 1px solid #d9e6ff;
-	border-radius: 
+	border: 1px solid #748fc4;
+	border-radius: 0px;
+}
+
+.nav-tabs > li > a:hover {
+	background-color: #fff;
+	border: 1px solid #464646;
+	box-shadow: 0px 0px 6px #757575;
+	margin-left: 0px;
 }
 
 .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
@@ -184,8 +194,14 @@ button.btn {
 	cursor: default;
 	background-color: #5b9cd2;
 	border-top: solid 1px white;
+	border-right: solid 1px #ddd;
 	border-bottom: solid 1px #a1c5d7;
 	box-shadow: 0 2px 6px #527dcc;
+	margin-bottom: 1px;
+}
+
+.nav-tabs > li.active > a:hover {
+	margin-left: 0px;
 }
 
 /* Changes to tabset-pills - smaller, coloured */

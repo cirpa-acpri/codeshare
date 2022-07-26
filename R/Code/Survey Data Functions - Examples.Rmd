@@ -1,7 +1,7 @@
 ---
 title: "Demonstrating Some Survey Data Functions"
 author: "Fraser Hay"
-date: "Last Updated: 06/02/2022"
+date: "Last Updated: 06/29/2022"
 output: 
   html_document:
     df_print: paged
@@ -133,7 +133,7 @@ Looks like 8-cylinders were more popular in 2008 than would be expected, based o
 
 # Crosstabulation: Tabset {.tabset}
 
-One last thing to demonstrate is the `ct_tabset_dt()` function. As I mentioned, we do a lot of these crosstabs. So many that we like to loop through our key demos and show the distribution of the responses based on them. The `ct_tabset_dt()` is designed to save me a lot of copy-pasting-with-slight-tweaks. You tell it how to generate a single crosstab (for a `ctable()` rendering), and it repeats it for all of your demos, with each product on its own tab. (Note, this code chunk is marked `{.tabset}`, and the message that appears below the function call is built-in for reference.)
+One last thing to demonstrate is the `ct_tabset_dt()` function. As I mentioned, we do a lot of these crosstabs. So many that we like to loop through our key demos and show the distribution of the responses based on them. `ct_tabset_dt()` is designed to save me a lot of copy-pasting-with-slight-tweaks. You tell it how to generate a single crosstab (for a `ctable()` rendering), and it repeats it for all of your demos, with each product on its own tab. (Note, this code chunk is marked `{.tabset}`, and the message that appears before (/ after) the function call is built-in for reference.)
 
 <br>
 
@@ -143,6 +143,11 @@ Demos = c("cyl", "class", "drv")
 Tabs = c("By Cylinder Count", "By Car Class", "By Drivetrain")
 Params = c("Col1Name = 'Cylinders', chi2 = FALSE", "Col1Name = 'Car Class', chi2 = FALSE", "Col1Name = 'Drivetrain Type', chi2 = FALSE")
 
+# The below command spits out a reminder message:
+# --- To preview the output, paste and run the following:
+# ct.dt.out[['dt']]
+# --- Include knit command *in-text* below for rendering (remember to end the tabset):
+# `r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\n')`
 ct_tabset_dt("ct(data,x,'year')",Demos, Tabs, Params, HeadingLvl = 2)
 ```
 
@@ -179,6 +184,7 @@ data = tibble(
     "D",
     "A,D"))
 names(data) = "Multi_select"
+data
 
 MultiCoding(data, "Multi_select")
 mc_ftw(data, "Multi_select")
@@ -248,6 +254,7 @@ Questions = data.frame(Q = c("Multi_select_A",
                                 "Select all that apply. - Cat D"))
 Questions
 
+# Now back to the data...
 MultiCoding(data, "Multi_select")
 x = MultiCoding(data, "Multi_select")
 battery_ftw(x, "Multi_select") 
