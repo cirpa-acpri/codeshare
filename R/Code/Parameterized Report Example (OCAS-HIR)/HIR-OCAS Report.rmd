@@ -126,7 +126,7 @@ MIDENT_lookup = data[['MIDENT_lookup']]
 # Define Target(s)
 # ============================================================================================
 # City target
-area = "Milton"   # City / municipal area (eg. "Barrie")
+area = "Belleville"   # City / municipal area (eg. "Barrie")
 
 # College target - Name one College (eg. "Conestoga")
 college = ""      # Default is empty: ""
@@ -145,7 +145,6 @@ Years = as.character(2017:2022)   # I wouldn't change this - report text current
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, ft.keepnext = F)
 options(knitr.duplicate.label = "allow")
 
-# Area-specific Data wrangling
 # ============================================================================================
 Area = toupper(area)
 College = toupper(college)
@@ -158,7 +157,6 @@ MIDENTs = MIDENT_lookup %>%
 #  What applicants came from these schools?
 Schools = edu %>% 
   filter(MidentCode %in% MIDENTs) %>% 
-  collect() %>% 
   { . ->> temp} %>% # Save output at this point
   group_by(MidentCode) %>% 
   summarize(Students = n()) %>% 
@@ -173,8 +171,7 @@ MIDENTs = unique(Schools$MIDENT)
 
 # What did they apply to?
 activity = patterns %>% 
-  filter(ApplicantId %in% IDs, Term == !!Term, AppCycle %in% !!Years) %>% 
-  collect()
+  filter(ApplicantId %in% IDs, Term == Term, AppCycle %in% Years)
 applicants = activity %>% 
   filter(EnrolmentStage == "Application")
 registrants = activity %>% 
@@ -186,12 +183,10 @@ registrants = activity %>%
 # ============================================================================================
 # What applicants came from these schools?
 activity_college = patterns %>% 
-  filter(ApplicantId %in% IDs, CollegeName == College) %>% 
-  collect()
+  filter(ApplicantId %in% IDs, CollegeName == College)
 
 Schools_college = edu %>% 
-  filter(MidentCode %in% MIDENTs, ApplicantId %in% !!activity_college$ApplicantId) %>% 
-  collect() %>% 
+  filter(MidentCode %in% MIDENTs, ApplicantId %in% activity_college$ApplicantId) %>% 
   { . ->> temp} %>% # Save output at this point
   group_by(MidentCode) %>% 
   summarize(Students = n()) %>% 
@@ -415,6 +410,8 @@ ftw(registrants_college, MCUCode) %>%
 ```
 
 `r if(college == "") {"\\end{comment}"}`
+
+`r if(college != "") {"\\newpage"}`
 
 ## Summary Stats
 
