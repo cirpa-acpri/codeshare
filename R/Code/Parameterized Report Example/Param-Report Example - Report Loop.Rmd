@@ -1,0 +1,25 @@
+```{r setup, include=FALSE}
+# NOTES
+# -----------------------------------
+# - Keep in mind that this script doesn't really function on its own. It needs data (from the parent document) to be defined in order to run.
+# - You can still test it in the same session by running the parent and defining the variables referenced below, like the [data] table, and the [target] row reference (number).
+# - You'd probably have more interesting things happening in a reporting loop than just listing a table, but this is just an example of how we can even get here in the first place.
+
+# Setup
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+`r if(length(cars) > 1) {"\\newpage"}` <!-- Main text comment! This conditionally adds a page break -->
+
+# Statistics: `r row.names(data[target,])`
+
+```{r}
+# flextable is great for generating pretty tables for Word docs.
+flextable(data[target,]) %>% 
+  theme_box() %>% 
+  font(fontname = "Arial Narrow", part = "all") %>%
+  bg(bg = "#D9E1F2", part = "header") %>% 
+  autofit()
+```
+
+<!-- All done. Back to the parent. -->

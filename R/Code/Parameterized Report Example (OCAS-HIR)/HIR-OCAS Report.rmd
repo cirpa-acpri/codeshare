@@ -1,0 +1,627 @@
+---
+output:
+  word_document:
+    reference_docx: Style.docx
+---
+
+```{r setup, include=FALSE}
+# A Word Report Example - by Fraser Hay (CONS) - fhay {at} conestogac.on.ca
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Greetings earthlings, welcome to this self-contained example of making a parameterized report.
+
+# REQUIREMENTS
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# In order for this report to work, you'll need the following things:
+
+# - An internet connection - we're going to be pulling some images as well as some functions from the CIRPA CodeShare 
+#   GitHub (https://github.com/cirpa-acpri/codeshare)
+devtools::source_url("https://github.com/cirpa-acpri/codeshare/blob/master/R/Code/Survey%20Data%20Functions.R?raw=TRUE")
+
+# FILES:
+# - HIR-OCAS Report.rmd       (This file, obviously)
+# - Style.docx    (A template Word file for R to base the report output on)
+# - data.rds      (The fake data in the table structure of the OCAS-HIR data)
+
+# LIBRARIES:
+# - These need to be installed in your R instance in order to be loaded. See the "packages" tab on the left-bottom pane.
+library(knitr)
+library(tidyverse)
+library(flextable)
+library(officer)
+
+# QUICK START:
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# If all you want to do is run it, skip to the 'RUN' section below.
+
+# INTRO:
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# This was created for the IRPNG OCAS Hackathon event (Fall 2022) for the OCAS-HIR person-level dataset. The crux of this
+# example report is to give recruiters information about a municipality: top highschools creating applications / enrolment,
+# and for those applicants, top Colleges and subjects they applied to and enrolled in.
+
+# This is an RMarkdown document (.RMD), which means it includes basic text and code chunks to run. The file therefore is a 
+# self-contained report that includes the data references, transformations, and text used to generate it, so it can be 
+# adjusted or re-run.
+
+# Making RMarkdown export to Word is easy, but getting it to look good (or rather, something other than very basic) is a 
+# bit harder, since we don't benefit from using native commands in Word to specify formatting. The mainstream approach is
+# to use a template document that has formatting template info - "styles" - within it that we invoke when we want to make
+# text appear in different ways. So, if I want nice small formatting underneath a figure, I need to create a style in my
+# template document that has a name and is just the size/colour/format I want, after which I can "call" the format in my 
+# report by using "fences" in the main text, like so:
+#     ::: {custom-style="ScriptNote"} 
+#     Note: 2022 Registration numbers are incomplete
+#     :::
+# Using this approach, you can make various headings, script faces and such. And your template document can have headers
+# and footers and page numbers and graphics baked into it, if you like.
+
+# Just going to note two additional useful commands that are in this report:  
+
+#     /newpage      
+
+# - Generates a new page / page break (you could also do this by defining a text style with a break)
+
+#     {"\\begin{comment}"} and {"\\end{comment}"}     
+
+# - Allows you to make text sections that appear or not based on logic you specify. See example in this report, for the 
+#   College-specific section. Every comment beginning needs an end, mind you, otherwise it doesn't work.
+
+# More information about making reports in R is available here: https://bookdown.org/yihui/rmarkdown-cookbook/
+
+# DATA:
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# This example will reference a temporary data file, but it was originally built to use the full set of OCAS-HIR data.
+# You could always change the source of the data to the HIR datasources by subbing them out after loading them in. For 
+# instance, if you had the data uploaded into SQL, you could use something like the following to access it:
+#     library(odbc)
+#     library(dbplyr)
+#     con <- dbConnect(odbc(), driver = "SQL Server", server = "<server name>", database = "<database name>")
+#     data = dplyr::tbl(con, in_schema(sql("<database name>.<schema>"),"<table name>"))
+# Feel free to reach out to me if you'd like help hooking up R to an SQL server.
+
+# Alternately, if you're just working with the CSVs, you should load them in R and then save them as an .RDS,
+# which is a compressed file and much faster to load. Here's how to crunch a csv into a .RDS and load it:
+#     saveRDS(read.csv(file = "<path to .CSV file>"), file = "<file to save to>.RDS")
+#     data = readRDS(file = "<file to save to>.RDS")
+
+# As it is, the data.rds that ships out with this example is completely fake - shuffled beyond recognition. But the
+# data structure (of the tables) matches the OCAS-HIR schema. (Eg. there's a table with the patterns of activity,
+# one for demographics, post-secondary records, highschool averages). I'm naming things, for the different tables, as 
+# below:
+data = readRDS("data.rds")
+patterns = data[['patterns']]
+demos = data[['demos']]
+edu = data[['edu']]
+pse = data[['pse']]
+# BONUS: I'm including a MIDENT lookup table which includes current and historical values. An amazing value!
+MIDENT_lookup = data[['MIDENT_lookup']]
+
+# FURTHER NOTES:
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# - Use parameterized reports whenever you have recurring reporting needs you tend to do over and over again, or have
+#   a fairly similar report people want done many different ways, on demand.
+# - Dashboards are cool; reports tell stories. Use your dashboards to find the parameters for your recurring reports, 
+#   and use paramaterized reports to fill the gap between raw data exploration and deep dives into subjects.
+# - You can make .RMDs modular, where they take input and give output. Then you create another .RMD file that calls them
+#   on an as-needed basis for a unique reporting job. I've done this for an LMI machine I have, where I may (or may not)
+#   specify various types of codes / sections to be included.
+# - You could hook an .RMD report generator up to a command line and pass parameters in that call, rather than opening
+#   up the RStudio interface for such things. This then means you could make a server generate reprots based on API
+#   calls. I'm not saying I've done it but I could see a way to do it.
+# - You will probably get some warning messages when you run this. Warnings are fine - they simply are advisories,
+#   typically that an approach is bad form or may someday be depreciated. But it works for now, so, it's fine! :P
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# RUN
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# USE INSTRUCTIONS
+# - If you've previously run the report, close the file. In order to create a new report, it needs to be able to
+#   overwrite the previous file - and it can't do that if it's open.
+# - Define the municipality you want to analyze (filter the data for). (Eg. 'Barrie')
+# - Optionally, specify a College you specifically want to analyze the trends for (Eg. "Conestoga")
+# - Knit the document (button at the top) - defaults to Word.
+# - Output will be exported and should open when completed.
+
+# Define Target(s)
+# ============================================================================================
+# City target
+area = "Milton"   # City / municipal area (eg. "Barrie")
+
+# College target - Name one College (eg. "Conestoga")
+college = ""      # Default is empty: ""
+
+# Term
+Term = "FALL"     # Either FALL, WINTER or SPRING intakes
+
+# Years
+Years = as.character(2017:2022)   # I wouldn't change this - report text currently refers to "last five years"
+# ============================================================================================
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Script Options - Just setting some defaults
+# ============================================================================================
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, ft.keepnext = F)
+options(knitr.duplicate.label = "allow")
+
+# Area-specific Data wrangling
+# ============================================================================================
+Area = toupper(area)
+College = toupper(college)
+
+# LOOKUP: Schools with College activity in this area
+MIDENTs = MIDENT_lookup %>% 
+  filter(City == Area) %>% 
+  pull(MIDENT)
+
+#  What applicants came from these schools?
+Schools = edu %>% 
+  filter(MidentCode %in% MIDENTs) %>% 
+  collect() %>% 
+  { . ->> temp} %>% # Save output at this point
+  group_by(MidentCode) %>% 
+  summarize(Students = n()) %>% 
+  left_join(MIDENT_lookup, by = c("MidentCode" = "MIDENT")) %>%  
+  select(MidentCode, `School Name`, Students) %>% 
+  arrange(desc(Students)) %>% 
+  rename(MIDENT = MidentCode)
+IDs = temp %>% 
+  pull(ApplicantId)
+# (And therefore, what schools are active?)
+MIDENTs = unique(Schools$MIDENT)
+
+# What did they apply to?
+activity = patterns %>% 
+  filter(ApplicantId %in% IDs, Term == !!Term, AppCycle %in% !!Years) %>% 
+  collect()
+applicants = activity %>% 
+  filter(EnrolmentStage == "Application")
+registrants = activity %>% 
+  filter(EnrolmentStage == "Registration", EntryLevel == "1")
+```
+
+```{r college-data, eval=(College != "")}
+# College-specific Data wrangling
+# ============================================================================================
+# What applicants came from these schools?
+activity_college = patterns %>% 
+  filter(ApplicantId %in% IDs, CollegeName == College) %>% 
+  collect()
+
+Schools_college = edu %>% 
+  filter(MidentCode %in% MIDENTs, ApplicantId %in% !!activity_college$ApplicantId) %>% 
+  collect() %>% 
+  { . ->> temp} %>% # Save output at this point
+  group_by(MidentCode) %>% 
+  summarize(Students = n()) %>% 
+  left_join(MIDENT_lookup, by = c("MidentCode" = "MIDENT")) %>%  
+  select(MidentCode, `School Name`, Students) %>% 
+  arrange(desc(Students)) %>% 
+  rename(MIDENT = MidentCode)
+IDs_college = temp %>% 
+  pull(ApplicantId)
+
+applicants_college = activity_college %>% 
+  filter(EnrolmentStage == "Application")
+registrants_college = activity_college %>% 
+  filter(EnrolmentStage == "Registration")
+```
+
+::: {custom-style="Figure"} 
+```{r Logo, out.width="600px"}
+# Note: typically to include graphics I would point R to a local file. But this example needs to be self-contained, so go-go-gadget web links!
+include_graphics("https://www.leadsquared.com/wp-content/uploads/2021/11/banner-6.png")
+```
+:::
+
+# Recruitment Report {-}
+
+This report provides high-level historical trend numbers for recruiters who are traveling to a prospective area. This **data** is sourced from the **OCAS HIR Person-level Dataset** (Fall 2022).
+
+## Parameters
+
+Municipal area selected: **`r Area`**
+
+Intake Term: **`r Term`**
+
+```{r}
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Hi, Fraser here, in a random code chunk!
+# 
+# I just wanted to make a note of what's happening immediately below. The next statement invloves in-line R code.
+# (`r <code>`) This means instead of interpreting the characters as text to be shown on the page, R will take the
+# code back-stage and run it then return the result. This lets us conditionally add things to our rendered report
+# content.
+# 
+# The first `r` line below checks if the person has NOT made a college specification in the start-up chunk. If
+# the variable is blank (the default), it will just return empty space. If however they have put a College in there,
+# it will paste in a summary line for that College.
+# 
+# The second `r` line is a sneaky one: because it hides an entire section from the finished report content by
+# invoking a COMMENT section, which essentially makes all the regular content within the \\begin{comment} and 
+# \\end{comment} delimiters not appear on the page. This is one way of making "conditional sections" in your
+# reports. Another would be to conditionally run other (child) .RMD report files and merge in the results.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+```
+
+
+
+`r ifelse(College == "", "", paste0("College Statistics for: **", College, "**"))`
+
+`r if(college == "") {"\\begin{comment}"}` 
+
+## College Stats: `r College`
+
+### Schools
+
+&nbsp;
+
+::: {custom-style="Figure"} 
+```{r school, eval=(College != ""), out.width="500px"}
+include_graphics("https://media.schoolsites.ca/uploads/111/ohs1/1618851085-2560w_885h_ohs1.jpg")
+```
+:::
+
+* Over the past five years, there were **`r {if(College != "") n_format(nrow(Schools_college))}`** high schools (or MIDENT student source entities) in this area that had `r College`-related OCAS activity. `r {if(College != "") ifelse(nrow(Schools_college) > 20, "The top 20 schools are listed below.", "")}`
+
+&nbsp;
+
+```{r, eval=(College != "")}
+Schools_college %>% 
+  head(20) %>% 
+  flextable() %>% 
+  theme_box() %>% 
+  set_table_properties(width = 1, layout = "autofit") %>%
+  bold(part = "header") %>% 
+  bg(bg = "#D9E1F2", part = "header") %>% 
+  fontsize(part = "all", size = 10) %>% 
+  padding(padding = 3, part = "all") %>% 
+  align(align = "center", j = -c(1,2), part = "all") %>% 
+  border_inner_h(border = fp_border(), part = "all") %>% 
+  set_formatter(`%` = function(x) sprintf( "%.1f%%", x*100 )) 
+```
+
+&nbsp;
+
+* Over the past five years, there have been **`r {if(College != "") n_format(length(IDs_college))}`** prospective students from these schools making **`r {if(College != "") n_format(nrow(applicants_college))}`** applications (program choices) to **`r College`**.
+
+### Applications - Program choices 
+
+&nbsp;
+
+::: {custom-style="Figure"} 
+```{r app, eval=(College != ""), out.width="300px"}
+include_graphics("https://d4y70tum9c2ak.cloudfront.net/contentImage/ItfdpP95a6oG4paOgtWXvUYteyiMWskP2awLWB7qPr0/resized.png")
+```
+:::
+
+#### Trending Totals - Applications to `r College`
+
+```{r, fig.width=8, eval=(College != "")}
+temp = applicants_college %>% 
+  group_by(AppCycle) %>% 
+  summarize(Choices = n())
+
+# legend_order = c("Local % Change", "Provincial % Change", "National % Change")
+# Employ_Data$Level = factor(Employ_Data$Level, levels = legend_order)
+# Projection Graph - Rendering
+ggplot(temp, aes(x=AppCycle, y=Choices, label=Choices)) +
+  geom_line(data=temp, size=1, linetype=1) +
+  geom_text(angle = 90,nudge_y = max(temp$Choices)*.08) +
+  ylim(0, max(temp$Choices)*1.2) +
+  theme(legend.position="bottom",
+        legend.title = element_blank(),
+        legend.key = element_rect(fill = NA),
+        panel.background = element_blank(),
+        panel.grid.major = element_line(colour = "grey85"),
+        panel.grid.minor = element_line(colour = "grey95"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(size=10, angle=45, margin = margin(3, 0, 0, 0), hjust = 1))
+```
+
+#### Subjects
+
+The top 20 MTCUs being applied to by these students (at `r College`) over the past five years have been the following:
+
+&nbsp;
+
+```{r, eval=(College != "")}
+ftw(applicants_college, MCUCode) %>% 
+  left_join(applicants %>% select(MCUCode, MCUTitle) %>% distinct(), by = c("resp" = "MCUCode")) %>% 
+  select(resp, MCUTitle, count, pct) %>% 
+  head(20) %>% 
+  `colnames<-`(c("MTCU", "Program", "Choices", "%")) %>% 
+  flextable() %>% 
+  theme_box() %>% 
+  set_table_properties(width = 1, layout = "autofit") %>%
+  bold(part = "header") %>% 
+  bg(bg = "#D9E1F2", part = "header") %>% 
+  fontsize(part = "all", size = 10) %>% 
+  padding(padding = 3, part = "all") %>% 
+  align(align = "center", j = -c(1,2), part = "all") %>% 
+  border_inner_h(border = fp_border(), part = "all") %>% 
+  set_formatter(`%` = function(x) sprintf( "%.1f%%", x*100 )) 
+```
+
+&nbsp;
+
+### Registrations
+
+&nbsp;
+
+::: {custom-style="Figure"} 
+```{r reg, eval=(College != ""), out.width="500px"}
+include_graphics("https://www.mdx.ac.uk/__data/assets/image/0025/480517/Lecture-theatres_feature.jpg")
+```
+:::
+
+&nbsp;
+
+Registrations refer to students who completed the application and confirmation process and became registered students attending classes. Of those those **`r {if(College != "") n_format(length(IDs_college))}`** applying students over the past five years, **`r {if(College != "") n_format(length(unique(registrants_college$ApplicantId)))}`** went on to register at **`r College`**. 
+
+#### Trending Totals
+
+```{r, fig.width=8, eval=(College != "")}
+temp = registrants_college %>% 
+  # filter(Term == "FALL") %>% 
+  group_by(AppCycle) %>% 
+  summarize(Choices = n())
+
+# legend_order = c("Local % Change", "Provincial % Change", "National % Change")
+# Employ_Data$Level = factor(Employ_Data$Level, levels = legend_order)
+# Projection Graph - Rendering
+ggplot(temp, aes(x=AppCycle, y=Choices, label=Choices)) +
+  geom_line(data=temp, size=1, linetype=1) +
+  geom_text(angle = 90,nudge_y = max(temp$Choices)*.08) +
+  ylim(0, max(temp$Choices)*1.2) +
+  theme(legend.position="bottom",
+        legend.title = element_blank(),
+        legend.key = element_rect(fill = NA),
+        panel.background = element_blank(),
+        panel.grid.major = element_line(colour = "grey85"),
+        panel.grid.minor = element_line(colour = "grey95"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(size=10, angle=45, margin = margin(3, 0, 0, 0), hjust = 1))
+```
+
+::: {custom-style="ScriptNote"} 
+Note: 2022 Registration numbers are incomplete
+:::
+
+
+#### Subjects
+
+The top 20 MTCUs where those students registered (at `r College`) are the following:
+
+&nbsp;
+
+```{r, eval=(College != "")}
+ftw(registrants_college, MCUCode) %>% 
+  left_join(registrants %>% select(MCUCode, MCUTitle) %>% distinct(), by = c("resp" = "MCUCode")) %>% 
+  select(resp, MCUTitle, count, pct) %>% 
+  head(20) %>% 
+  `colnames<-`(c("MTCU", "Program", "Registrations", "%")) %>% 
+  flextable() %>% 
+  theme_box() %>% 
+  set_table_properties(width = 1, layout = "autofit") %>%
+  bold(part = "header") %>% 
+  bg(bg = "#D9E1F2", part = "header") %>% 
+  fontsize(part = "all", size = 10) %>% 
+  padding(padding = 3, part = "all") %>% 
+  align(align = "center", j = -c(1,2), part = "all") %>% 
+  border_inner_h(border = fp_border(), part = "all") %>% 
+  set_formatter(`%` = function(x) sprintf( "%.1f%%", x*100 )) 
+```
+
+`r if(college == "") {"\\end{comment}"}`
+
+## Summary Stats
+
+### Schools
+
+&nbsp;
+
+::: {custom-style="Figure"} 
+```{r school2, out.width="500px"}
+include_graphics("https://media.schoolsites.ca/uploads/111/ohs1/1618851085-2560w_885h_ohs1.jpg")
+```
+:::
+
+&nbsp;
+
+* Over the past five years, there were **`r length(MIDENTs)`** high schools (or MIDENT student source entities) with OCAS activity within this area. `r ifelse(length(MIDENTs) > 20, "The top 20 schools are listed below.","")`
+
+&nbsp;
+
+```{r}
+Schools %>% 
+  head(20) %>% 
+  flextable() %>% 
+  theme_box() %>% 
+  set_table_properties(width = 1, layout = "autofit") %>%
+  bold(part = "header") %>% 
+  bg(bg = "#D9E1F2", part = "header") %>% 
+  fontsize(part = "all", size = 10) %>% 
+  padding(padding = 3, part = "all") %>% 
+  align(align = "center", j = -c(1,2), part = "all") %>% 
+  border_inner_h(border = fp_border(), part = "all") %>% 
+  set_formatter(`%` = function(x) sprintf( "%.1f%%", x*100 )) 
+```
+
+&nbsp;
+
+* Over the past five years, there have been **`r n_format(length(IDs))`** prospective students from these schools making **`r n_format(nrow(applicants))`** applications (program choices).
+
+### Applications - Program choices 
+
+&nbsp;
+
+::: {custom-style="Figure"} 
+```{r app2, out.width="300px"}
+include_graphics("https://d4y70tum9c2ak.cloudfront.net/contentImage/ItfdpP95a6oG4paOgtWXvUYteyiMWskP2awLWB7qPr0/resized.png")
+```
+:::
+
+#### Colleges
+
+The top 20 College destinations for these students have been the following:
+
+&nbsp;
+
+```{r}
+ftw(applicants, CollegeName) %>% 
+  head(20) %>% 
+  `colnames<-`(c("College", "Choices", "%")) %>% 
+  flextable() %>% 
+  theme_box() %>% 
+  set_table_properties(width = 1, layout = "autofit") %>%
+  bold(part = "header") %>% 
+  bg(bg = "#D9E1F2", part = "header") %>% 
+  fontsize(part = "all", size = 10) %>% 
+  padding(padding = 3, part = "all") %>% 
+  align(align = "center", j = -c(1), part = "all") %>% 
+  border_inner_h(border = fp_border(), part = "all") %>% 
+  set_formatter(`%` = function(x) sprintf( "%.1f%%", x*100 )) 
+```
+
+#### Trending Totals
+
+```{r, fig.width=8}
+temp = applicants %>% 
+  group_by(AppCycle) %>% 
+  summarize(Choices = n())
+
+# legend_order = c("Local % Change", "Provincial % Change", "National % Change")
+# Employ_Data$Level = factor(Employ_Data$Level, levels = legend_order)
+# Projection Graph - Rendering
+ggplot(temp, aes(x=AppCycle, y=Choices, label=Choices)) +
+  geom_line(data=temp, size=1, linetype=1) +
+  geom_text(angle = 90,nudge_y = max(temp$Choices)*.08) +
+  ylim(0, max(temp$Choices)*1.2) +
+  theme(legend.position="bottom",
+        legend.title = element_blank(),
+        legend.key = element_rect(fill = NA),
+        panel.background = element_blank(),
+        panel.grid.major = element_line(colour = "grey85"),
+        panel.grid.minor = element_line(colour = "grey95"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(size=10, angle=45, margin = margin(3, 0, 0, 0), hjust = 1))
+```
+
+
+#### Subjects
+
+The top 20 MTCUs being applied to by these students have been the following:
+
+&nbsp;
+
+```{r}
+ftw(applicants, MCUCode) %>% 
+  left_join(applicants %>% select(MCUCode, MCUTitle) %>% distinct(), by = c("resp" = "MCUCode")) %>% 
+  select(resp, MCUTitle, count, pct) %>% 
+  head(20) %>% 
+  `colnames<-`(c("MTCU", "Program", "Choices", "%")) %>% 
+  flextable() %>% 
+  theme_box() %>% 
+  set_table_properties(width = 1, layout = "autofit") %>%
+  bold(part = "header") %>% 
+  bg(bg = "#D9E1F2", part = "header") %>% 
+  fontsize(part = "all", size = 10) %>% 
+  padding(padding = 3, part = "all") %>% 
+  align(align = "center", j = -c(1,2), part = "all") %>% 
+  border_inner_h(border = fp_border(), part = "all") %>% 
+  set_formatter(`%` = function(x) sprintf( "%.1f%%", x*100 )) 
+```
+
+&nbsp;
+
+### Registrations
+
+&nbsp;
+
+::: {custom-style="Figure"} 
+```{r reg2, out.width="500px"}
+include_graphics("https://www.mdx.ac.uk/__data/assets/image/0025/480517/Lecture-theatres_feature.jpg")
+```
+:::
+
+&nbsp;
+
+Registrations refer to students who completed the application and confirmation process and became registered students attending classes. Of those those **`r n_format(length(IDs))`** applying students, **`r n_format(length(unique(registrants$ApplicantId)))`** went on to register at a College. 
+
+#### Colleges
+
+The top 20 College destinations for these students have been the following:
+
+&nbsp;
+
+```{r}
+ftw(registrants, CollegeName) %>% 
+  head(20) %>% 
+  `colnames<-`(c("College", "Registrants", "%")) %>% 
+  flextable() %>% 
+  theme_box() %>% 
+  set_table_properties(width = 1, layout = "autofit") %>%
+  bold(part = "header") %>% 
+  bg(bg = "#D9E1F2", part = "header") %>% 
+  fontsize(part = "all", size = 10) %>% 
+  padding(padding = 3, part = "all") %>% 
+  align(align = "center", j = -c(1), part = "all") %>% 
+  border_inner_h(border = fp_border(), part = "all") %>% 
+  set_formatter(`%` = function(x) sprintf( "%.1f%%", x*100 )) 
+```
+
+#### Trending Totals
+
+```{r, fig.width=8}
+temp = registrants %>% 
+  # filter(Term == "FALL") %>% 
+  group_by(AppCycle) %>% 
+  summarize(Choices = n())
+
+# legend_order = c("Local % Change", "Provincial % Change", "National % Change")
+# Employ_Data$Level = factor(Employ_Data$Level, levels = legend_order)
+# Projection Graph - Rendering
+ggplot(temp, aes(x=AppCycle, y=Choices, label=Choices)) +
+  geom_line(data=temp, size=1, linetype=1) +
+  geom_text(angle = 90,nudge_y = max(temp$Choices)*.08) +
+  ylim(0, max(temp$Choices)*1.2) +
+  theme(legend.position="bottom",
+        legend.title = element_blank(),
+        legend.key = element_rect(fill = NA),
+        panel.background = element_blank(),
+        panel.grid.major = element_line(colour = "grey85"),
+        panel.grid.minor = element_line(colour = "grey95"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(size=10, angle=45, margin = margin(3, 0, 0, 0), hjust = 1))
+```
+
+::: {custom-style="ScriptNote"} 
+Note: 2022 Registration numbers are incomplete
+:::
+
+
+#### Subjects
+
+The top 20 MTCUs where those students registered are the following:
+
+&nbsp;
+
+```{r}
+ftw(registrants, MCUCode) %>% 
+  left_join(registrants %>% select(MCUCode, MCUTitle) %>% distinct(), by = c("resp" = "MCUCode")) %>% 
+  select(resp, MCUTitle, count, pct) %>% 
+  head(20) %>% 
+  `colnames<-`(c("MTCU", "Program", "Registrations", "%")) %>% 
+  flextable() %>% 
+  theme_box() %>% 
+  set_table_properties(width = 1, layout = "autofit") %>%
+  bold(part = "header") %>% 
+  bg(bg = "#D9E1F2", part = "header") %>% 
+  fontsize(part = "all", size = 10) %>% 
+  padding(padding = 3, part = "all") %>% 
+  align(align = "center", j = -c(1,2), part = "all") %>% 
+  border_inner_h(border = fp_border(), part = "all") %>% 
+  set_formatter(`%` = function(x) sprintf( "%.1f%%", x*100 )) 
+```

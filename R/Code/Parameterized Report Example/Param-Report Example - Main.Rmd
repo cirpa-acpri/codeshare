@@ -1,0 +1,79 @@
+---
+title: "Example R Parameterized Report Generator"
+author: "Fraser Hay"
+output:
+  word_document:
+    toc: true
+    reference_docx: Style_Template.docx
+---
+
+```{r setup, include=FALSE}
+# Parameterized Report Example
+# -----------------------------------------------------------------------
+# Contributed by: Fraser Hay - Conestoga College
+# -----------------------------------------------------------------------
+# You will need:
+# - Both Param-Report Example .RMD files.
+# - The "Style_Template.docx" file, which includes style info for the word formatted output.
+# -----------------------------------------------------------------------
+# DESCRIPTION:
+# The basic idea is you indicate which rows for the "Report Loop" to check over and return output for. See below. This script then calls the Report Loop for as many sections as are requested, then proceeds with some final info and closes. Output is a Word Document.
+# -----------------------------------------------------------------------
+
+# WHICH CARS WOULD YOU LIKE A REPORT PAGE FOR? (/32)
+# Enter as many as you like. Each will get a loop of the report generator. If you only put one, it'll all fit on one page (additional page breaks get conditionally disabled).
+cars = c(30, 7, 6)
+
+# In more fancy scripts, you could make this a pop-up. https://bookdown.org/yihui/rmarkdown/params-knit.html
+# -----------------------------------------------------------------------
+
+# Setup
+knitr::opts_chunk$set(echo = FALSE)
+options(knitr.duplicate.label = "allow") # Just in case you end up calling chunks with the same names over and over...
+
+# Libraries
+library(tidyverse)
+library(knitr)
+library(flextable)
+
+# Data
+data = mtcars
+```
+
+# Introduction
+
+This report provides an example of making a parameterized report. The present paragraph is contained in the "Parent" report generator RMarkdown document. It defines the data that will be referenced in the "Child" report, which in the present case is the main analysis loop that generates the results for each selection. Each time we call the loop, we give it a different target. It acts on the input and provides output that gets "knit" into the master report.
+
+The below tables are the selected rows from the dataset. If more than one is selected, each will be listed on a separate page, for funsies.
+
+```{r report_loop}
+# NOTE: THIS CHUNK DOES *NOT* PREVIEW... IT WILL THROW AN ERROR IF RUN...
+# knit::knit_child is not able to provide output outside a knit() operation. This means that you basically have to trust the command will work, and test it by hitting the "knit" button at the top of RStudio. As it currently stands, this chunk loops through each of the cars in the selection made in the first chunk, defines the target for the child (report loop), and then calls it to run. What is returned is the output "knit code" inside the [output] variable. This is then rendered by the chunk immediately below.
+output = NULL
+for (car in cars) {
+  target = car
+  output = c(output, knitr::knit_child("Param-Report Example - Report Loop.Rmd", quiet = TRUE, envir = environment()))
+}
+```
+
+```{r rendering_output, echo=FALSE, results="asis"}
+# This code simply renders the output (knit code) we generated above.
+cat(paste(output, collapse = '\n'))
+```
+
+`r if(length(cars) > 1) {"\\newpage"}`
+
+# Conclusion
+
+This report has shown how you can loop over a particular set of operations or output. It's a little more complicated than just writing chunks out one by one. But it's a great solution when you don't know how many sections your report should have in the end. Hope this helps.
+
+&nbsp;&nbsp;
+
+» Fraser Hay
+
+<!-- Main text comment! This is how you change font sizes in Word, sadly. You have to make your template document have text styles that match every possible thing you want to do. -->
+::: {custom-style="ScriptNote"} 
+[Conestoga College](https://www.conestogac.on.ca/) 
+
+fhay[at]conestogac.on.ca
+:::

@@ -68,7 +68,7 @@ frq_g_simple(x, "A Simple Graph of mpg manufacturers")
 
 # Crosstabulation {.tabset}
 
-I don't know about you, but crosstabulations are basically our bread and butter - we employ them on virtually every question we report on. Mostly this is because we know some groups of students (eg. international students) tend to differ from their domestic counterparts.
+I don't know about you, but crosstabulations are basically our bread and butter - we employ them on virtually every question we report on. Mostly this is because we know some groups of students (eg. international students) tend to differ from their (domestic) counterparts.
 
 But back to the data at-hand, about cars. `ct()` is what makes this happen - provide two variables and it'll see how they intersect. It of course also allows you to specify a weighting variable, if needed.
 
