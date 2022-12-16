@@ -471,7 +471,7 @@ ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weig
   labels = get(Questions_df) %>%
     filter(startsWith(Q, !!Q)) %>% 
     mutate(labels = gsub(".*-\\s", "", .$Text[which(.$Q == Q)])) %>%
-    select(all_of(Q), labels)
+    select(`Q`, labels)
   if(is.null(tab_recodes)) Categories = unique(labels$labels) else Categories = recode(unique(labels$labels), !!!tab_recodes)
   out = NULL
   for (c in Categories) {
