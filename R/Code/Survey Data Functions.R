@@ -22,6 +22,10 @@
 # R community on the internet / Stack Overflow, who have supplied answers to my questions over many
 # hours of Googling and head-scratching.
 
+# In mid-to-late 2022 I've tried to retrofit some functions to accept both "quoted" and `unquoted` 
+# variable names. Haven't completed this, nor do I think my approach is a good one, but it's working for
+# now.
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Gotta have some libraries...
@@ -133,7 +137,7 @@ ct = function(df, rows, cols, weight = NULL, pct = FALSE, decimals = NULL, count
   if(!missing(weight)) { if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if("function" %in% class(weight)) { weight = as.character(substitute(weight)) } else { weight = weight } } # Accept both `var` (deparse/substitute) and "var" - and if not specified, revert to NULL.
   x = MultiCoding(df, cols, label = "x", delim = delim)
   y = MultiCoding(df, rows, label = "y", delim = delim)
-  data = {if (is.null(weight)) bind_cols(x, y, weight = 1) else bind_cols(x, y, select(df, weight) %>% rename(weight = weight))} %>% 
+  data = {if (is.null(weight)) bind_cols(x, y, weight = 1) else bind_cols(x, y, select(df, all_of(weight)) %>% rename(weight = weight))} %>% 
     pivot_longer(cols=-c(weight, names(y)), names_to="Column", values_to = "selected") %>% 
     filter(selected != 0) %>% 
     select(-selected) %>% 
@@ -153,7 +157,7 @@ ct = function(df, rows, cols, weight = NULL, pct = FALSE, decimals = NULL, count
     multi_flag = ifelse(max(unlist(lapply(strsplit(as.character(pull(df, cols)), delim, perl = TRUE), length))) > 1, TRUE, FALSE)
     if (multi_flag == TRUE & N_adjust == FALSE) message("** NOTE ** -  Multiple-response independent variable detected. In some cases you may want to use the 'N_adjust = TRUE' to make the row N= counts be the number of actual observations in each variable category. Default N= behaviour is row sums across all response options (respondent duplicate counting possible).")
     CrossTab = CrossTab %>%
-      { if (multi_flag == TRUE & N_adjust == TRUE) bind_cols(., tibble(N = round(unname(colSums(y))))) else mutate(., N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE)))} %>% 
+      { if (multi_flag == TRUE & N_adjust == TRUE) bind_cols(., tibble(N = round(select(df, all_of(c(rows, cols))) %>% drop_na() %>% pull(rows) %>% table() %>% unname()))) else mutate(., N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE))) } %>% 
       mutate(Row = paste0(Row," (N = ",n_format(N),")")) %>% 
       select(-N)
   }
@@ -205,7 +209,6 @@ ct = function(df, rows, cols, weight = NULL, pct = FALSE, decimals = NULL, count
   }
   return(Output)
 }
-
 
 # Row Percents
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -468,7 +471,7 @@ ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weig
   labels = get(Questions_df) %>%
     filter(startsWith(Q, !!Q)) %>% 
     mutate(labels = gsub(".*-\\s", "", .$Text[which(.$Q == Q)])) %>%
-    select(Q, labels)
+    select(all_of(Q), labels)
   if(is.null(tab_recodes)) Categories = unique(labels$labels) else Categories = recode(unique(labels$labels), !!!tab_recodes)
   out = NULL
   for (c in Categories) {
@@ -525,10 +528,11 @@ MultiCoding = function(df, Q, label = NULL, delim = ",(?!\\s)") {
 # Modified raw_mode (TRUE) ignores weight calculations - simply creates a frequency table based on supplied values in the df - they need to be numbers that can be summed. N = number of rows.
 #   > Often used for qualitative coding outputs.
 # return_N: Sometimes for graphs you need to get an N out of here - as in, how many people answered these multi-select questions in any fashion. For this, use the return_N feature (set to TRUE).
+# delim = ",(?!\\s)"; Specify a PERL expression for a delimiter to be passed to the MultiCoding() call. Default is "comma-no-space".
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-mc_ftw = function(df, Q = NULL, Weight_var_in_Quotes = NULL, raw_mode = FALSE, return_N = FALSE) {
+mc_ftw = function(df, Q = NULL, Weight_var_in_Quotes = NULL, raw_mode = FALSE, return_N = FALSE, delim = ",(?!\\s)") {
   if (raw_mode == FALSE) {
-    mc = MultiCoding(df, Q)
+    mc = MultiCoding(df, Q, delim = delim)
     df = { if (is.null(Weight_var_in_Quotes)) transmute(df, weight = 1) else select(df, all_of(Weight_var_in_Quotes)) } %>%
       rename(weight = 1) %>% 
       bind_cols(., mc) %>% 
@@ -599,7 +603,7 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
 #   weight = Weighting variable. Required.
 #   freq = FALSE; set to TRUE to return frequency counts instead of row percents
 #   round_freq = TRUE; round frequencies / counts to integers
-#   Questions_df = Questions; Specify your "Questions" dataset. If you don't have a "Questions" dataset, set to NULL or FALSE - this will skip looking up the category text.
+#   Questions_df = Questions; Specify your "Questions" dataset. If you don't have a "Questions" dataset, set to NULL - this will skip looking up the category text.
 #     > Questions is supposed to be a dataframe with the following columns (In Qualtrics output, this is the first two rows of an excel export):
 #       + Q = The column name in the reference dataset
 #       + Text = The actual question text (for labelling)
@@ -609,11 +613,11 @@ battery_ftw = function(df, Q_prefix, weight = NULL, freq = FALSE, round_freq = T
   Q_prefix = if("try-error" %in% class(try(class(Q_prefix), silent = TRUE))) deparse(substitute(Q_prefix)) else Q_prefix # Accept both `var` (deparse/substitute) and "var".
   if(missing(weight)) { weight = NULL } else { if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else { weight = sym(weight) } } # Accept both `var` (deparse/substitute) and "var" - and if not specified, revert to NULL.
   if (is.null(weight)) { 
-    temp = { if (contains) select(df, contains(Q_prefix)) else select(df, Q_prefix) } %>% 
+    temp = { if (contains) select(df, contains(Q_prefix)) else select(df, all_of(Q_prefix)) } %>% 
       mutate(weight = 1) %>% 
       select(weight, everything())
   } else { 
-    temp = { if (contains) select(df, weight, contains(Q_prefix)) else select(df, weight, Q_prefix) }
+    temp = { if (contains) select(df, all_of(weight), contains(Q_prefix)) else select(df, all_of(weight, Q_prefix)) }
   }
   temp = temp %>% 
     rename(weight = 1) %>% 
@@ -636,14 +640,15 @@ battery_ftw = function(df, Q_prefix, weight = NULL, freq = FALSE, round_freq = T
     temp = temp %>%
       pivot_wider(names_from = resp, values_from = count)
   } 
-  if (is.null(Questions_df) || Questions_df == FALSE) {
+  if (is.null(Questions_df)) {
     temp = temp %>% 
       rename(resp = 1)
   } else {
-    temp = temp %>% 
-      mutate(resp = gsub(".*-\\s", "", Questions_df$Text[which(Questions_df$Q == Q)])) %>% 
-      .[,-1] %>% 
-      select(resp, everything())
+    temp = tryCatch(temp %>% 
+                      mutate(resp = gsub(".*-\\s", "", Questions_df$Text[which(Questions_df$Q == Q)])) %>% 
+                      .[,-1] %>% 
+                      select(resp, everything()),
+                    error = function(e){ message("Error: Problem detected with Questions_df parameter / lookup - check that questions (Q/Text) exist in supplied or default dataframe, or set to NULL.") } )
   }
   return(ungroup(temp))
 }
@@ -683,7 +688,7 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
     geom_text(aes(label = {if (scale == "pct") pct_format(pct, decimals) else n_format(count, decimals)}), size = Value_font_size, position = pos) +
     coord_flip() +
     {if (scale == "pct") scale_y_continuous(labels = scales::percent_format(accuracy = 1)) else scale_y_continuous(breaks = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count, na.rm = TRUE), scale))))), labels = unname(round(quantile(c(0,ifelse(scale == "count", max(df$count, na.rm = TRUE), scale))))))} + 
-    patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), 
+    patchwork::plot_annotation(title = tryCatch(wrap.labels(Title_in_Quotes, Title_wrap_length), error = function(e){stop("Error: Title is not a string. Are you accidentally piping in a dataframe here?")}), 
                                subtitle = ifelse(!is.null(subtitle), subtitle,
                                                  ifelse(is.null(Custom_N), paste0("N = ",formatC(sum(df$count, na.rm = TRUE),format="f", big.mark=",", digits=0)),
                                                         ifelse(Custom_N == FALSE, "", paste0("N = ",formatC(Custom_N,format="f", big.mark=",", digits=0))))), 
@@ -759,7 +764,7 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
     { if (!is.null(divergent)) scale_fill_manual(breaks = rev(c(rev(FillOrder[1:length(divergent[['left']])]), FillOrder[(length(divergent[['left']])+1):sum(lengths(divergent))])), values = rev(colours)) else scale_fill_manual(values = rev(colours)) } + # For divergent graphs: additionally flipping the order of the "left side" columns.
     { if (!is.null(divergent)) scale_y_continuous(breaks = seq(-1,1,0.2), labels = pct_format(abs(seq(-1,1,0.2))), limits = c(-1,1)) else scale_y_continuous(breaks = seq(0,1,0.1), labels = pct_format(seq(0,1,0.1))) } + # For divergent graphs: the scale needs to be -1 to +1, rather than 0-1.
     guides(fill=guide_legend(nrow=Legend_Rows,byrow=TRUE,reverse=TRUE)) +
-    patchwork::plot_annotation(title = wrap.labels(Title_in_Quotes, Title_wrap_length), subtitle=ifelse(!is.null(subtitle), subtitle, ifelse(N_mode == "t", paste0("N = ",N), "")), theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,ifelse(any(!is.null(subtitle) | N_mode == "t"),5,-10),0)))) + # Title & subtitle
+    patchwork::plot_annotation(title = tryCatch(wrap.labels(Title_in_Quotes, Title_wrap_length), error = function(e){stop("Error: Title is not a string. Are you accidentally piping in a dataframe here?")}), subtitle=ifelse(!is.null(subtitle), subtitle, ifelse(N_mode == "t", paste0("N = ",N), "")), theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,ifelse(any(!is.null(subtitle) | N_mode == "t"),5,-10),0)))) + # Title & subtitle
     # Theme (aesthetic) settings
     theme(legend.position="bottom",
           legend.title = element_blank(),
@@ -786,7 +791,7 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
 #   title = Title of the graph
 #   Title_wrap_length = 55; How long the text of the title should be allowed to run before spilling to a new line. Uses the wrap.labels() function.
 #   groups; A character vector with the value columns you want displayed in the stacked bar, in order.
-#   pct = TRUE; Whether to run a col_percents() call on the values. If you're piping in counts, this is good. If you've already converted things to percents, set this to FALSE.
+#   pct = "col"; Whether to run a col_percents() ("col") or row_percents() ("row") call on the values. If you're piping in counts, this is good. If you've already converted things to percents, set this to FALSE.
 #   decimals = Number of decimals on value labels
 #   scale = If you're wanting to specify your own scale, provide the breaks you want on the X axis.
 #   border = "#00000060"; Border colour of the bars
@@ -798,13 +803,15 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
 #   spacing = 0.2; Spacing between individual bars (and therefore how big category groups will be).
 #   Fcolour = "Blues"; R palette being used - see https://r-graph-gallery.com/38-rcolorbrewers-palettes.html
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-frq_g_overlap = function(df, title = "Chart", Title_wrap_length = 55, groups = names(df)[-1], pct = TRUE, decimals = 0, scale = NULL, border = "#00000060", colours = NULL, Cat_font_size = 14, Cat_wrap_length = 40, label_font_size = 4, label_nudge = 0.04, bar_width = 0.4, spacing = 0.2, Fcolour = "Blues") {
-  if (is.null(colours)) { colours = RColorBrewer::brewer.pal(n = (ncol(df) - 1), name = Fcolour) }
+frq_g_overlap = function(df, title = "Chart", Title_wrap_length = 55, groups = names(df)[-1], pct = "col", decimals = 0, scale = NULL, border = "#00000060", colours = NULL, Cat_font_size = 14, Cat_wrap_length = 40, label_font_size = 4, label_nudge = 0.04, bar_width = 0.4, spacing = 0.2, Fcolour = "Blues") {
+  # browser()
+  if (is.null(colours)) { if(ncol(df) > 3) { colours = RColorBrewer::brewer.pal(n = (ncol(df) - 1), name = Fcolour) } else { colours = RColorBrewer::brewer.pal(n = 3, name = Fcolour)[c(1,3)] } } 
   if (length(colours) != length(groups)) stop(paste0("Omission: You have specified colours, but you need to specify a vector of colours (with transparency numbers trailing, if applicable) *the same length as the number of bars (specified groups) in your dataframe* (Groups detected: ", length(groups), ")"))
   # Data reshaping: the function takes output similar to ct(), but ggplot needs a column for category, group, and value in this case.
   x_pos = seq(spacing, (spacing * -1), length = length(groups))
   BarData_Long = df %>%
-    { if (pct) col_percents(.) else . } %>% 
+    { if (pct == "col") col_percents(.) else . } %>%
+    { if (pct == "row") row_percents(.) else . } %>% 
     pivot_longer(cols = 2:ncol(df), names_to = "Group") %>% 
     rename(resp = 1) %>% # Rename first column
     mutate(resp = wrap.labels(resp, Cat_wrap_length)) %>% 
@@ -817,15 +824,15 @@ frq_g_overlap = function(df, title = "Chart", Title_wrap_length = 55, groups = n
     { if (length(groups) > 2) geom_bar(data= ~ filter(., Group == groups[3]), stat = "identity", width = bar_width, position = position_nudge(x = x_pos[3]), colour=border) } + 
     { if (length(groups) > 3) geom_bar(data= ~ filter(., Group == groups[4]), stat = "identity", width = bar_width, position = position_nudge(x = x_pos[4]), colour=border) } +
     { if (length(groups) > 4) geom_bar(data= ~ filter(., Group == groups[5]), stat = "identity", width = bar_width, position = position_nudge(x = x_pos[5]), colour=border) } +
-    geom_text(data= ~ filter(., Group == groups[1]), {if (pct == T) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[1], y = label_nudge)) +
-    geom_text(data= ~ filter(., Group == groups[2]), {if (pct == T) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[2], y = label_nudge)) +
-    { if (length(groups) > 2) geom_text(data= ~ filter(., Group == groups[3]), {if (pct == T) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[3], y = label_nudge)) } +
-    { if (length(groups) > 3) geom_text(data= ~ filter(., Group == groups[4]), {if (pct == T) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[4], y = label_nudge)) } +
-    { if (length(groups) > 4) geom_text(data= ~ filter(., Group == groups[5]), {if (pct == T) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[5], y = label_nudge)) } +
+    geom_text(data= ~ filter(., Group == groups[1]), {if (pct != F) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[1], y = label_nudge)) +
+    geom_text(data= ~ filter(., Group == groups[2]), {if (pct != F) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[2], y = label_nudge)) +
+    { if (length(groups) > 2) geom_text(data= ~ filter(., Group == groups[3]), {if (pct != F) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[3], y = label_nudge)) } +
+    { if (length(groups) > 3) geom_text(data= ~ filter(., Group == groups[4]), {if (pct != F) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[4], y = label_nudge)) } +
+    { if (length(groups) > 4) geom_text(data= ~ filter(., Group == groups[5]), {if (pct != F) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[5], y = label_nudge)) } +
     scale_fill_manual(values=colours, limits = groups) +
     geom_vline(xintercept=seq(-0.5, length(groups)+1.5, 1), colour="gray") + # Gridlines
-    patchwork::plot_annotation(title = wrap.labels(title, Title_wrap_length), theme = theme(plot.title = element_text(hjust = 0.5, size = 16, margin = margin(0,0,8,0)))) +
-    {if (pct == T) scale_y_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0%","25%","50%","75%","100%")) else {if (is.null(scale)) scale_y_continuous(breaks = seq(0, ceiling(max(select_if(BarData_Long, is.numeric), na.rm = T)), ceiling(max(select_if(BarData_Long, is.numeric), na.rm = T) / 5))) else scale_y_continuous(breaks = scale)}} +
+    patchwork::plot_annotation(title = tryCatch(wrap.labels(title, Title_wrap_length), error = function(e){stop("Error: Title is not a string. Are you accidentally piping in a dataframe here?")}), theme = theme(plot.title = element_text(hjust = 0.5, size = 16, margin = margin(0,0,8,0)))) +
+    {if (pct != F) scale_y_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0%","25%","50%","75%","100%")) else {if (is.null(scale)) scale_y_continuous(breaks = seq(0, ceiling(max(select_if(BarData_Long, is.numeric), na.rm = T)), ceiling(max(select_if(BarData_Long, is.numeric), na.rm = T) / 5))) else scale_y_continuous(breaks = scale)}} +
     coord_flip() +
     theme(legend.position="bottom",
           legend.title = element_blank(),

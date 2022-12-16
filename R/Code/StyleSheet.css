@@ -139,11 +139,7 @@ h1.title.toc-ignore {
 
 
 /* Button formatting */
-button : not ([aria-expanded]) {
-	font-size: 10px !important;
-}
-
-button.btn.collapsed {
+button.btn {
 	border: 1px solid #80adff;
 	background-color: #c0dbf7;
 	color: #6e6e6e;
@@ -153,7 +149,7 @@ button.btn.collapsed {
 	box-shadow: 0 3px 6px #527dcc;
 }
 
-button.btn {
+button:focus {
 	border: 1px solid #858585;
 	background-color: #d6d6d6;
 	color: #6e6e6e;
@@ -162,7 +158,6 @@ button.btn {
 	font-size: 19px;
 	box-shadow: 0 3px 6px black;
 }
-
 
 /* Tabs formatting */
 .nav-tabs {
@@ -197,7 +192,7 @@ button.btn {
 	border-right: solid 1px #ddd;
 	border-bottom: solid 1px #a1c5d7;
 	box-shadow: 0 2px 6px #527dcc;
-	margin-bottom: 1px;
+	margin-bottom: 0px;
 }
 
 .nav-tabs > li.active > a:hover {
@@ -213,6 +208,7 @@ button.btn {
     margin-left: 2px;
     padding: 8px 13px;
 	box-shadow: 0 3px 10px rgb(0 0 0 / 0.2);
+	font-size: 11pt;
 }
 
 .nav-pills > li.active > a, .nav-pills > li.active > a:focus, .nav-pills > li.active > a:hover {
