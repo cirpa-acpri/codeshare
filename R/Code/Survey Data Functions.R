@@ -34,8 +34,36 @@ library(clipr)
 library(DT)
 library(patchwork)
 
-# Suppress that "groups" warning from the summarize() function.
-options(dplyr.summarise.inform=F)
+# 'Not in' operator (Source: https://stackoverflow.com/questions/5831794/opposite-of-in-exclude-rows-with-values-specified-in-a-vector)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`%!_in%` <- Negate(`%in%`)
+
+# Recode Vector
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Allows you to specify a named vector and it will inspect the input vector and attempt to recode any matches. Relies heavily on dplyr. 
+# Not sure why there isn't a built-in function for this. Also, save yourself some typing and use dput() to pre-type the vector for you.
+# Arguments:
+#   vector = Input vector
+#   recodes = A named vector (eg. c("original value" = "recoded value")) for the recode-pair transformations you want to conduct. Doesn't have to include pairs for everything. 
+#   new_first = set to TRUE if your recodes vector is named/set-up where names are the new value: "recoded value" = "original value"
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+recode_vector = function(vector, recodes, new_first = FALSE) {
+  if (!is.null(recodes)) {
+    t = as.data.frame(recodes, nm = "values")
+    if (new_first) {
+      t = t %>% rename(old = values) %>% mutate(new = row.names(.))
+    } else {
+      t = t %>% rename(new = values) %>% mutate(old = row.names(.))
+    }
+    recode_table = t %>% remove_rownames()
+    as.data.frame(vector, nm = "values") %>% 
+      left_join(recode_table, by = c("values" = "old")) %>% 
+      mutate(new = ifelse(is.na(new), values, new)) %>% 
+      pull(new)
+  } else {
+    return(vector)
+  }
+}
 
 # Percent Formatting
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -60,12 +88,12 @@ value = function(x) {
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Super useful for ensuring strings wrap at particular character counts.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-wrap.labels <- function(x, len) {
+wrap.labels <- function(x, len, sep = "\n") {
   if (is.list(x))
   {
-    lapply(x, sapply(x, function(y) paste(strwrap(y, len), collapse = "\n"), USE.NAMES = FALSE), len)
+    lapply(x, sapply(x, function(y) paste(strwrap(y, len), collapse = sep), USE.NAMES = FALSE), len)
   } else {
-    sapply(x, function(y) paste(strwrap(y, len), collapse = "\n"), USE.NAMES = FALSE)
+    sapply(x, function(y) paste(strwrap(y, len), collapse = sep), USE.NAMES = FALSE)
   }
 }
 
@@ -116,98 +144,83 @@ ftw = function(df, question, weight = weight, n_round = TRUE, sort = TRUE, drop_
 
 # (C)ross (T)abulation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Creates a simple crosstab count table from two variables. Updated in Dec. 2021 to account for Qualtrics multi-coding (comma-no-space-separated) stuff. As a result:
+# Creates a simple crosstab count table from two variables. Updated in early 2023 to accept grouped input, and to account for Qualtrics'
+# multi-coding (comma-no-space-separated) stuff. As a result:
 # Function Dependencies: Mark's MultiCoding function.
-# Random note: could possibly re-write this with dplyr::tally() https://www.statology.org/dplyr-crosstab/ (though pivot_wider > spread)
 # Arguments:
-#   weight = Specific weighting variable, optional. (Note: 'Weight_var_in_Quotes' is also accepted (to not break old stuff).)
+#   weight = Specific weighting variable, optional.
+#   overall = TRUE; Returns an "Overall" summary total count for each grouping.
+#   include_N = TRUE; Adds "(N=)" indicator text to the first (category) column, with row totals.
 #   pct = FALSE; Set to TRUE to change output to row percentages
 #   count = FALSE; Set to TRUE to return a total N for each row - usually only used in conjunction with pct to get both worlds.
 #   decimals = NULL; Specify an integer to round to that many places
-#   include_N = TRUE; Adds "(N=)" indicator text to the first (category) column, with row totals.
-#   N_adjust = FALSE; Only for when you're crosstabbing against a multiple-response variable, toggle TRUE to return only the number of cases (by row) in the N= counts.
 #   sort = TRUE; Returns the columns ordered highest (n) to lowest. Alternately specify a label vector for the column ordering. FALSE returns as-is.
 #   order = NULL; Specify a vector of row labels to return the categories in that order.
-#   row_recodes = NULL; Specify a named vector (eg. c("New" = "Original")) to recode row categories.
+#   row_recodes = NULL; Specify a named vector (eg. c("Original" = "New")) to recode row categories.
 #   delim = delimiter for detecting multiple-response question and for MultiCoding() calls. Note: perl = TRUE.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ct = function(df, rows, cols, weight = NULL, pct = FALSE, decimals = NULL, count = FALSE, include_N = TRUE, N_adjust = FALSE, sort = TRUE, order = NULL, row_recodes = NULL, Weight_var_in_Quotes = NULL, delim = ",(?!\\s)") {
-  rows = if("try-error" %in% class(try(class(rows), silent = TRUE))) deparse(substitute(rows)) else if("function" %in% class(rows)) as.character(substitute(rows)) else rows # Accept both `var` (deparse/substitute) and "var".
-  cols = if("try-error" %in% class(try(class(cols), silent = TRUE))) deparse(substitute(cols)) else if("function" %in% class(cols)) as.character(substitute(cols)) else cols # Accept both `var` (deparse/substitute) and "var".
-  if(!missing(weight)) { if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if("function" %in% class(weight)) { weight = as.character(substitute(weight)) } else { weight = weight } } # Accept both `var` (deparse/substitute) and "var" - and if not specified, revert to NULL.
-  x = MultiCoding(df, cols, label = "x", delim = delim)
-  y = MultiCoding(df, rows, label = "y", delim = delim)
-  data = {if (is.null(weight)) bind_cols(x, y, weight = 1) else bind_cols(x, y, select(df, all_of(weight)) %>% rename(weight = weight))} %>% 
-    pivot_longer(cols=-c(weight, names(y)), names_to="Column", values_to = "selected") %>% 
-    filter(selected != 0) %>% 
-    select(-selected) %>% 
-    pivot_longer(cols=-c(weight, Column), names_to="Row", values_to = "selected") %>% 
-    filter(selected != 0) %>% 
-    select(-selected) %>% 
-    mutate(across(Column:Row, ~ gsub("x_|y_", "", .)))
-  CrossTab = data %>% 
-    group_by(Column, Row) %>% 
-    drop_na %>%
-    summarize(count = sum(weight)) %>% 
-    ungroup() %>%
-    pivot_wider(names_from = Column, values_from = count) %>%
-    { if (!is.null(row_recodes)) mutate(Row = recode(Row, !!!row_recodes)) else . } %>% 
-    { if (!is.null(order)) arrange(., factor(Row, levels = order)) else . }
-  if (include_N == TRUE) {
-    multi_flag = ifelse(max(unlist(lapply(strsplit(as.character(pull(df, cols)), delim, perl = TRUE), length))) > 1, TRUE, FALSE)
-    if (multi_flag == TRUE & N_adjust == FALSE) message("** NOTE ** -  Multiple-response independent variable detected. In some cases you may want to use the 'N_adjust = TRUE' to make the row N= counts be the number of actual observations in each variable category. Default N= behaviour is row sums across all response options (respondent duplicate counting possible).")
-    CrossTab = CrossTab %>%
-      { if (multi_flag == TRUE & N_adjust == TRUE) bind_cols(., tibble(N = round(select(df, all_of(c(rows, cols))) %>% drop_na() %>% pull(rows) %>% table() %>% unname()))) else mutate(., N = round(rowSums(select(., 2:ncol(CrossTab)), na.rm = TRUE))) } %>% 
-      mutate(Row = paste0(Row," (N = ",n_format(N),")")) %>% 
-      select(-N)
-  }
-  Overall = data %>%  
-    group_by(Column) %>% 
-    drop_na %>%
-    summarize(count = sum(weight)) %>%
-    ungroup() %>%
-    pivot_wider(names_from = Column, values_from = count) %>% 
-    mutate(Row = "Overall") %>% 
-    select(Row, everything())
-  Output = bind_rows(Overall,CrossTab)
-  names(Output)[1] = rows
-  if (count == TRUE) {
-    Output = Output %>%
-      mutate(count = rowSums(select(., 2:ncol(.)), na.rm = TRUE)) %>%
-      .[,c(1,ncol(.),2:(ncol(.)-1))]
-  }
-  if (pct == TRUE) {
-    if (count == TRUE) {
-      temp = Output[,2]
-      Output = Output %>% 
-        .[,c(1,3:ncol(.))]
-    }
-    Output = Output %>% 
-      pivot_longer(cols=2:ncol(.), names_to="cat", values_to = "val") %>% 
-      group_by_at(1) %>% 
-      mutate(pct = val / sum(val, na.rm = TRUE)) %>% 
-      select(1:2,4) %>% 
-      pivot_wider(names_from = cat, values_from = pct)
-    if (count == TRUE) {
-      Output = bind_cols(Output, temp) %>% 
-        .[,c(1,ncol(.),2:(ncol(.)-1))]
-    }
-  }
-  if (!is.null(decimals)) {
-    Output = Output %>% mutate_at(vars(-1), ~ round(., digits = decimals))
-  }
-  # Sort, if activated
-  if (all(sort == TRUE)) {
-    x = Output
-    a = x[,1] # Pop-off the 'top'
-    b = x[,2:ncol(x)] # Grab the rest
-    b = b[,rev(sort(as.numeric(as.vector(b[1,])), index.return = TRUE)$ix)] # Sort the columns for the rest based on the overall. NOTES: obviously this line is more complicated than that from the previous iteration (b = b[,rev(order(b[1,]))]), however since early 2021 I was getting an annoying warning message - "In xtfrm.data.frame(x) : cannot xtfrm data frames". Apparently the original approach is simply not recommended anymore. https://win-vector.com/2021/02/07/it-has-always-been-wrong-to-call-order-on-a-data-frame/
-    Output = bind_cols(a, b) # Recombine
-    return(Output)
-  } else if (length(sort) > 1) { # If a vector is provided, sort the output by the vector.
-    return(select(Output, rows, any_of(sort)))
-  }
-  return(Output)
+ct = function(df, row, col, weight, overall = TRUE, include_N = TRUE, pct = FALSE, count = FALSE, sort = TRUE, order = NULL, row_recodes = NULL, delim = ",(?!\\s)", decimals = NULL) {
+  # browser()
+  row = if("try-error" %in% class(try(class(row), silent = TRUE))) deparse(substitute(row)) else if("function" %in% class(row)) as.character(substitute(row)) else row # Accept both `var` (deparse/substitute) and "var".
+  col = if("try-error" %in% class(try(class(col), silent = TRUE))) deparse(substitute(col)) else if("function" %in% class(col)) as.character(substitute(col)) else col # Accept both `var` (deparse/substitute) and "var".
+  if(! missing(weight)) { if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if("function" %in% class(weight)) { weight = as.character(substitute(weight)) } else { weight = weight } } else { df = mutate(df, weight = 1); weight = "weight"} # Accept both `var` (deparse/substitute) and "var" - and if not specified, revert to NULL.
+  # Baseline dataset - cases and variable combinations
+  t = bind_cols(select(df, !!ensym(weight)),
+                MultiCoding(df, row, label = "x._."), # Odd labels here are to avoid variable name edge-cases given the use of contains() below.
+                MultiCoding(df, col, label = "y._.")) %>% 
+    rename(weight = weight) %>% 
+    drop_na() %>% # Remove empty categories
+    mutate(.id_. = row_number()) %>% # We need id's because we need to eventually count respondents, vs. their responses
+    pivot_longer(cols = c(contains("y._._")), names_to = col, values_to = "col") %>% filter(col == 1) %>% select(-col) %>% 
+    pivot_longer(cols = c(contains("x._._")), names_to = row, values_to = "row") %>% filter(row == 1) %>% select(-row) %>% 
+    mutate(across(all_of(c(col, row)), ~ gsub("x._._|y._._", "", .), .names = "{col}"))
+  # Responses: counts of combinations
+  responses = t %>% 
+    group_by(!!ensym(col), !!ensym(row), .add = T) %>% 
+    summarize(combo_count = sum(weight, na.rm = T))
+  # Respondents: headcounts by row grouping
+  respondents = t %>% 
+    distinct(.id_., !!ensym(row), .keep_all = T) %>% 
+    group_by(!!ensym(row), .add = T) %>% 
+    summarize(col_headcount = sum(weight, na.rm = T))
+  # Overall headcount: headcount of cases who answered both questions
+  overall_headcount = t %>% 
+    distinct(.id_., .keep_all = T) %>% 
+    summarize(overall_headcount = sum(weight, na.rm = T))
+  # Overall responses: Distribution of column variable (within the context of row-variable respondents)
+  overall_responses = t %>% 
+    distinct(.id_., !!ensym(col), .keep_all = T) %>% 
+    group_by(!!ensym(col), .add = T) %>% 
+    summarize(overall_count = sum(weight, na.rm = T)) %>% 
+    { if (length(group_keys(t)) > 0) left_join(., overall_headcount) else mutate(., overall_headcount = pull(overall_headcount, overall_headcount)) } %>% 
+    { if (pct) mutate(., overall_val = overall_count / overall_headcount) else mutate(., overall_val = overall_count) }
+  # Result: combination of Responses, Respondents, and Overall metrics
+  result = left_join(responses, respondents, by = c(row, names(group_keys(respondents)))) %>% 
+    { if (pct) mutate(., val = combo_count / col_headcount) else mutate(., val = combo_count) } %>% # Calculating percentages
+    left_join(overall_responses, by = c(col, names(group_keys(overall_responses))))
+  # browser()
+  # Crosstab output
+  crosstab = bind_rows( 
+    { if (overall) result %>% # -- Overall Section --
+      select(., overall_val, all_of(group_cols())) %>% distinct() %>% 
+      { if (!is.null(decimals)) mutate(., overall_val = round(overall_val, digits = ifelse(pct, decimals + 2, decimals))) else .} %>% # Decimal rounding (if applicable)
+      pivot_wider(names_from = !!ensym(col), values_from = overall_val) %>%
+      { if (length(group_vars(result)) > 1) left_join(., overall_headcount) else cbind(., overall_headcount) } %>%
+      mutate(!!row := ifelse(include_N, paste0("Overall (N = ", n_format(overall_headcount), ")"), "Overall"), .before = length(group_keys(t)) + 1) %>% 
+      { if (count) rename(., count = overall_headcount) else select(., ! any_of("overall_headcount")) } else NULL 
+    },
+    result %>% # -- By category Section --
+      { if (!is.null(decimals)) mutate(., val = round(val, digits = ifelse(pct, decimals + 2, decimals))) else .} %>% # Decimal rounding (if applicable)
+      { if (!all(sort == TRUE)) arrange(., desc(col_headcount)) else . } %>% 
+      { if (!is.null(row_recodes)) mutate(., !!ensym(row) := recode(!!ensym(row), !!!row_recodes)) else . } %>% 
+      { if (!is.null(order)) arrange(., factor(!!ensym(row), levels = c("Overall", order))) else . } %>% 
+      { if (include_N) mutate(., !!row := paste0(!!ensym(row)," (N = ",n_format(col_headcount),")")) else . } %>% 
+      { if (count) select(., all_of(row), group_cols(), col_headcount, val) %>% rename(count = col_headcount) else select(., all_of(row), all_of(group_cols()), val) } %>% 
+      pivot_wider(names_from = !!ensym(col), values_from = val)
+    ) %>%
+    arrange(.by_group = T) %>% # Split out by group, if applicable
+    select(any_of(c(as.character(group_vars(.)), row, "count", sort)), everything(.)) # Sort columns if specified
+  return(crosstab)
 }
 
 # Row Percents
@@ -277,6 +290,8 @@ col_percents = function(df, Col1Cats = TRUE) {
 #   scrollX = If your table is very wide, use this to add a scroll-bar so it doesn't spill. Also activates DT's fixedColumns option (first column stays put when scrolling), and disables data bars for the first column (which show N-sizes) (this is because the data bars work by filling the bar with the colour and making the end of the bar transparent) 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%", chi2 = TRUE, freq = FALSE, decimals = NULL, title = "", font = "15", scrollX = FALSE) {
+  # Let's be honest, ctable() is old and needs a re-work. I have to manually make this adjustment since ct() used to only spit out an "overall", whereas now it does an (N=) total.
+  overall_cell = df[[1,1]]
   # Assign Col1Name, if not default to supplied variable title
   if (!is.null(Col1Name)) { names(df)[1] = Col1Name } 
   if (chi2 == TRUE) {
@@ -346,7 +361,7 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
   max_cat = max(row_totals)
   # Append chi2 formatting
   if (chi2 == TRUE) {
-    df = bind_cols(as_tibble(df), rename_all(as_tibble(rbind(rep(10, ncol(wtest[["ColFlag"]])), wtest[["ColFlag"]])), function(x) paste0(x,"_chi")))
+    df = bind_cols(as_tibble(df), rename_all(as_tibble(rbind(rep(10, ncol(wtest[["ColFlag"]])), wtest[["ColFlag"]][-1,])), function(x) paste0(x,"_chi")))
   } else {
     df = bind_cols(as_tibble(df), as_tibble(rbind(matrix(10L, nrow = 1, ncol = dim(df)[2]-2), matrix(9L, nrow = dim(df)[1]-1, ncol = dim(df)[2]-2))))
   }
@@ -361,9 +376,9 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
                                            list(width = Col1Width, targets = 0),
                                            list(width = OtherColWidths, targets = 1:N)))) %>%
     formatStyle(1, target = "row", # "Overall" row formatting
-                backgroundColor = styleEqual("Overall", "#337ab7"),
-                fontWeight = styleEqual("Overall", 'bold'),
-                color = styleEqual("Overall", 'white')) %>%
+                backgroundColor = styleEqual(overall_cell, "#337ab7"),
+                fontWeight = styleEqual(overall_cell, 'bold'),
+                color = styleEqual(overall_cell, 'white')) %>%
     formatStyle(2:(N+1), # Data bars - table values
                 background = styleColorBar({if (freq == FALSE) as.integer(0:1) else as.integer(c(0,freq_n))}, "#d4d4d485", angle = -90),
                 backgroundSize = '98% 80%',
@@ -374,7 +389,7 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
                                         backgroundSize = '98% 80%',
                                         backgroundRepeat = 'no-repeat',
                                         backgroundPosition = 'left') else formatStyle(., 1) } %>%
-    formatStyle(1, target = "cell", background = styleEqual("Overall", "#337ab7")) %>% # This manual colouring of the "Overall" cell needed due to 'FixedColumns' extension. For some reason it has to go below the data bars...
+    formatStyle(1, target = "cell", background = styleEqual(overall_cell, "#337ab7")) %>% # This manual colouring of the "Overall" cell needed due to 'FixedColumns' extension. For some reason it has to go below the data bars...
     formatPercentage(ifelse(freq==FALSE,2,0):ifelse(freq==FALSE,(N+1),0), ifelse(!is.null(decimals),decimals-2, 0)) %>% # Percentages
     formatRound(ifelse(freq==TRUE,2,0):ifelse(freq==TRUE,(N+1),0), ifelse(!is.null(decimals),decimals, 0)) %>% # Frequency decimals
     formatStyle(1:(N+1), border = '1px solid #ddd') %>% 
@@ -417,9 +432,9 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
   output_raw = list() # List for the raw tables
   output_dt = list() # List for the datatables
   for (x in Demos) { # For each demo variable...
-    temp = eval(parse(text = ct_code_in_quotes_x_as_demo)) # Evaluate the defined code literally...
-    output_dt[[which(Demos == x)]] = eval(parse(text = paste0("ctable(temp, ", Params[[which(Demos == x)]],")"))) # Create the ctable() call string and run...
-    output_raw[[which(Demos == x)]] = suppressMessages(temp %>% bind_cols(row_percents(.)[-1] %>% rename_at(vars(everything()),function(x) paste0(x,"_%")))) # Store the result in the raw tables list...
+    temp._ = eval(parse(text = ct_code_in_quotes_x_as_demo)) # Evaluate the defined code literally...
+    output_dt[[which(Demos == x)]] = eval(parse(text = paste0("ctable(temp._, ", Params[[which(Demos == x)]],")"))) # Create the ctable() call string and run...
+    output_raw[[which(Demos == x)]] = suppressMessages(temp._ %>% bind_cols(row_percents(.)[-1] %>% rename_at(vars(everything()),function(x) paste0(x,"_%")))) # Store the result in the raw tables list...
   }
   names(output_dt) = Demos # Assign names for clarity
   names(output_raw) = Demos
@@ -458,7 +473,8 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
 #   row_recodes = NULL; A named vector (eg. c("recoded value" = "original value")) for the recode-pair transformations you want to conduct for rows. Because we're doing demo tabsets, you'll need to do this as "one big vector" accommodating all the recodes you want to do for all demo variables. This would be if you have response categories that are ridiculously long and should be short-formed.
 #   sort = NULL; Specify a label vector for column ordering. FALSE returns as-is. (Piped into ct() calls) 
 #   order = NULL; Specify a vector of row labels to return the categories in that order. (Piped into ct() calls) Because we're doing demo tabsets, you'll need to do this as "one big vector" accommodating all the ordering you want to do for all demo variables.
-#   output_var = String to name the variable assignment for the output.
+#   output_var = "out"; String to name the variable assignment for the output (knit code).
+#   output_lists = "t"; String to name the various ct_tabset_dt() output call data (<string>#)
 #   HeadingLvl = How many #'s to include as part of the rendered tabsets.
 #   delim = Delimiter for ct()'s MultiCoding() calls. Note: perl = TRUE.
 #   tab_recodes = Same as row_recodes above, but for the names of the categories / tabs people will click on. Specify a named vector to recode.
@@ -467,7 +483,7 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
 # Remember to include a knit command below your chunk to render the output after running this!
 # Example: `r paste(knit(text = out), collapse = '\n')`
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weight", Demos, Tabs, Params, row_recodes = NULL, sort = NULL, order = NULL, output_var = "out", HeadingLvl = 4, tab_recodes = NULL, Questions_df = "Questions", delim = NULL) {
+ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weight", Demos, Tabs, Params, row_recodes = NULL, sort = NULL, order = NULL, output_var = "out", output_lists = "t", HeadingLvl = 4, tab_recodes = NULL, Questions_df = "Questions", delim = NULL) {
   labels = get(Questions_df) %>%
     filter(startsWith(Q, !!Q)) %>% 
     mutate(labels = gsub(".*-\\s", "", .$Text[which(.$Q == Q)])) %>%
@@ -479,8 +495,8 @@ ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weig
     ct_tabset_dt(ct_code = paste0('ct(', dataset_in_quotes,', x, "', Q, '", weight = "', weight ,'"', if(!is.null(row_recodes)) paste0(', row_recodes = ', row_recodes), 
                                   if(!is.null(order)) paste0(", order = c(", paste0('"', order, '"', collapse = ", "), "),"),
                                   if(!is.null(delim)) paste0(", delim = c(", paste0('"', delim, '"', collapse = ", "), "),"),
-                                  ifelse(!is.null(sort), paste0(", sort = c(", paste0('"', sort, '"', collapse = ", "), "))"), ")")), Demos = Demos, Tabs = Tabs, Params = Params, HeadingLvl = (HeadingLvl + 1), output = TRUE, assign = paste0("t", which(c == Categories)))
-    a = paste0("t",which(c == Categories))
+                                  ifelse(!is.null(sort), paste0(", sort = c(", paste0('"', sort, '"', collapse = ", "), "))"), ")")), Demos = Demos, Tabs = Tabs, Params = Params, HeadingLvl = (HeadingLvl + 1), output = TRUE, assign = paste0(output_lists, which(c == Categories)))
+    a = paste0(output_lists,which(c == Categories))
     out = c(out, paste0(paste0(rep("#", HeadingLvl), collapse = "")," ",c," {.tabset .tabset-fade -}\n\n"),
             get(a)[['knit_code']],
             "\n\n")
@@ -510,60 +526,52 @@ MultiCoding = function(df, Q, label = NULL, delim = ",(?!\\s)") {
   if (max(unlist(lapply(strsplit(as.character(pull(df, {{Q}})), delim, perl = TRUE), length))) > 1) {  # This dense command checks whether the df itself contains delimited (default comma-no-space-separated) items that are being multi-selected. If that's the case, we need to approach things differently in the for loop below.)
     message(paste0("MultiCoding: Creating dummy variables for response options - Multiple-response question (", Q, ")"))
     for (i in 1:length(resp)) { dummies[,i] <- ifelse(str_detect(pull(df, {{Q}}), pattern = coll(resp[i])), 1, 0) }
+    type = "Multiple-response"
   } else {
     message(paste0("MultiCoding: Creating dummy variables for response options - Single-response question (", Q, ")"))
     for (i in 1:length(resp)) { dummies[,i] <- ifelse(trimws(pull(df, {{Q}})) == resp[i], 1, 0) }
+    type = "Single-response"
   }
   colnames(dummies) <- paste0(rep(label, length(resp)), resp) # Column names
-  as.data.frame(dummies) # Return the dataframe
+  as.data.frame(dummies) %>% `attr<-`("coding_type", type) # Return the dataframe (with discernable attribute)
 }
 
 
-
-# (M)ulti(C)oding (F)requency (T)able, (W)eighted - Default sort is by count.
+# (M)ulti(C)oding (F)requency (T)able, (W)eighted
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Makes a count frequency table from a multiple-response question (from Qualtrics). 
+# Makes a count frequency table from a multiple-response question (from Qualtrics). Allows group_by() functionality.
 # Function Dependencies: Mark's MultiCoding function.
-# Default raw_mode (FALSE) takes the default Qualtrics output of a comma-separated-mulit-response "Q" and calls MultiCode to get an array of dummies that it then summarizes, using the weights supplied.
-# Modified raw_mode (TRUE) ignores weight calculations - simply creates a frequency table based on supplied values in the df - they need to be numbers that can be summed. N = number of rows.
-#   > Often used for qualitative coding outputs.
-# return_N: Sometimes for graphs you need to get an N out of here - as in, how many people answered these multi-select questions in any fashion. For this, use the return_N feature (set to TRUE).
-# delim = ",(?!\\s)"; Specify a PERL expression for a delimiter to be passed to the MultiCoding() call. Default is "comma-no-space".
+# Arguments:
+#   round = TRUE; Whether to round counts (useful for graphs)
+#   sort = TRUE; Whether to sort output by count.
+#   return_N = FALSE; Set to TRUE to have the function return a list as output - the data, and a tibble with the cases count (by group if applicable)
+#                     This is often used to get N's / totals for graphs.
+#   raw_mode = FALSE; Set to TRUE to create a frequency table based on a supplied MultiCoding output (and any other grouping columns as applicable).
+#   delim = ",(?!\\s)"; Specify a PERL expression for a delimiter to be passed to the MultiCoding() call. Default is "comma-no-space".
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-mc_ftw = function(df, Q = NULL, Weight_var_in_Quotes = NULL, raw_mode = FALSE, return_N = FALSE, delim = ",(?!\\s)") {
-  if (raw_mode == FALSE) {
-    mc = MultiCoding(df, Q, delim = delim)
-    df = { if (is.null(Weight_var_in_Quotes)) transmute(df, weight = 1) else select(df, all_of(Weight_var_in_Quotes)) } %>%
-      rename(weight = 1) %>% 
-      bind_cols(., mc) %>% 
-      mutate_at(vars(contains(paste0(Q, "_"))), ~ . * weight) %>%
-      drop_na() 
-    Num_Resp = sum(df$weight)
-    df = df %>%
-      select(contains(Q)) %>% 
-      pivot_longer(cols=everything(),names_to="Category", values_to = "Response") %>%
-      group_by(Category) %>%
-      summarize(count = sum(Response)) %>%
-      mutate(pct = count/Num_Resp, Category = {str_remove(.$Category, paste0(Q, "_"))}) %>%
-      rename(resp = Category) %>%
-      mutate_at(vars(count), round) %>%
-      arrange(desc(count))
-  } else {
-    Num_Resp = nrow(df)
-    df = df %>% 
-      pivot_longer(cols=everything(),names_to="Category", values_to = "Response") %>%
-      drop_na() %>%
-      group_by(Category) %>%
-      summarize(count = sum(Response)) %>%
-      mutate(pct = count/Num_Resp) %>%
-      rename(resp = Category) %>%
-      arrange(desc(count))
+mc_ftw = function(df, Q, weight, round = TRUE, sort = TRUE, return_N = FALSE, raw_mode = FALSE, delimiter = ",(?!\\s)") {
+  Q = if("try-error" %in% class(try(class(Q), silent = TRUE))) substitute(Q) else if("function" %in% class(Q)) as.character(substitute(Q)) else Q # This is just my standard approach of accepting quoted ("x") and unquoted (`x` - deparse/substitute) arguments to specify the target column.
+  if(missing(weight)) { weight = "weight"; df = mutate(df, weight = 1) } else if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if("function" %in% class(weight)) { weight = as.character(substitute(weight)) } else { weight = weight } # Accept both `x` (deparse/substitute) and "x" - and if not specified, set weights to 1.
+  if (!raw_mode) { # Normally we'll be going into this section. raw_mode means we're bringing our own data to the party here. But usually we need to run MultiCoding.
+    mc = MultiCoding(df, as.character(ensym(Q)), label = "", delim = delimiter) # Generate the MultiCoding output
+    df = select(df, {{weight}}, group_cols()) %>% # Maintains groups
+      bind_cols(mc)  # bind
   }
-  if (return_N == TRUE) {
-    return(list(df, Num_Resp))
-  } else {
-    return(df)
-  }
+  t = df %>% # This section prepares the data for tabulating.
+    drop_na() %>% # Drop N/A's
+    mutate(id = row_number()) %>% # We need id's because we need to eventually count respondents, vs. their responses.
+    pivot_longer(cols=-c(group_cols(), {{weight}}, id), names_to="Category", values_to = "Response") %>% # Pivot
+    filter(Response == 1) # Remove empty categories
+  cases = t %>% distinct(id, .keep_all = T) %>% summarize(cases = sum(!!ensym(weight), na.rm = T)) # Count respondents
+  output = t %>% 
+    group_by(Category, .add = T) %>% 
+    summarize(n = sum(!!ensym(weight), na.rm = T)) %>% # Count responses
+    { if (length(group_keys(t)) > 0) left_join(., cases) else mutate(., cases = pull(cases, cases)) } %>% # Gotta check for group_cols()
+    mutate(pct = n/cases) %>% # Percentages (of total cases)
+    rename(resp = Category, count = n) %>%  # Until I change over my graphing functions...
+    { if (round) mutate(., count = round(count)) else . } %>% 
+    arrange(select(., group_cols())) # If grouped, make them the first columns.
+  if (return_N == TRUE) return(list(table = output, N = ifelse(length(cases) > 1, cases, pull(cases)))) else return(output) # Return N's if applicable.
 }
 
 
@@ -577,7 +585,7 @@ mc_ftw = function(df, Q = NULL, Weight_var_in_Quotes = NULL, raw_mode = FALSE, r
 #   Item_from_Q_in_quotes is the actual column title. You may need to run a {MultiCoding(df, Question_in_quotes} to get this straight.
 #   label_1 / label_0 = What you want 1 or 0 to be titled in the output.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, Weight_var_in_Quotes = NULL, label_1 = "Yes", label_0 = "No") {
+mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, Weight_var_in_Quotes = NULL, sort = FALSE, order = NULL, label_1 = "Yes", label_0 = "No") {
   if (is.null(Weight_var_in_Quotes)) { 
     temp = select(df, Demo_in_quotes) %>% 
       mutate(weight = 1) %>% 
@@ -586,15 +594,14 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
     temp = select(df, Weight_var_in_Quotes, Demo_in_quotes)
   }
   bind_cols(temp, MultiCoding(df, Question_in_quotes, label = "")[Item_from_Q_in_quotes]) %>%
-    ct(names(.)[2], names(.)[3], names(.)[1], sort = FALSE) %>%
+    ct(names(.)[2], names(.)[3], names(.)[1], sort = sort, order = order) %>%
     rename(!!label_0 := 2, !!label_1 := 3, !!Demo_in_quotes := 1) %>%
     .[,c(1,3,2)]
 }
 
-
 # (Battery) Question (F)requency (T)able, (W)eighted
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Takes your question battery eg. ("Q10" refers to "Q10_1, _2, etc.") and makes it into a frequency table.
+# Takes your Qualtrics data question battery eg. ("Q10" refers to "Q10_1, _2, etc.") and makes it into a frequency table.
 # It's important that you then view said table and re-arrange it properly for the rendering in frq_g_battery().
 # * For best results, needs access to a "Questions" dataframe in order to get the category text, since that needs to be added for the output to be useful. This is an artifact of how Qualtrics encodes question-battery category text into the column headers.
 # Note: I tried to make this have conditional pipes instead of all these IF statements; sum() kept giving me errors for some unknown reason.
@@ -671,6 +678,7 @@ battery_ftw = function(df, Q_prefix, weight = NULL, freq = FALSE, round_freq = T
 #   scale = Set to "pct" (default) for percentages, "count" or specify a max number for counts. (The graph will only display 4 gridlines + 0. Your scale typically needs to be cleanly divisable by 4 for gridlines to not look awkward. Don't over-exceed the highest count by much or the last gridline won't display.)
 #   decimals = Number of decimals to include for percentage rounding.
 #   pos = Function for positioning text labels. Eg. position_nudge(x = 0, y = 0.05)
+#   colour = "#6baed6"; colour of the inside of the bar.
 #   border = TRUE; the colour you want the border to be, if applicable. Default is black. Disable with NULL.
 #   width = How thick do you want the bars? (In %, basically.)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -926,7 +934,6 @@ histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by 
       }
     } }
 }
-
 
 
 
