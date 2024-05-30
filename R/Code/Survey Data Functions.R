@@ -123,6 +123,25 @@ set = function(df, r, c, value) {
   return(df)
 }
 
+# Resolve - An easy way of handling quoted or unquoted values in functions.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Arguments:
+#   arg = The thing you want resolved
+#     If 'arg' exists in the environment with a value, it will return the value (value/"character").
+#     If 'arg' exists in the environment but is a function or table, it will return the name of itself quoted ("arg").
+#     If 'arg' does not exist in the environment, it will return the name of itself unquoted (arg).
+# You may need to enquo() a variable call if within a function.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+resolve = function(arg) {
+  if("try-error" %in% class(try(class(arg), silent = TRUE))) {
+    substitute(arg)
+  } else if(any(c("function", "tbl", "name") %in% class(arg))) {
+    as.character(substitute(arg))
+  } else {
+    arg
+  }
+}
+
 
 # (F)requency (T)able, (W)eighted
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,8 +152,8 @@ set = function(df, r, c, value) {
 #   drop_na = TRUE; Whether you want NA categories to be returned.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ftw = function(df, question, weight = weight, n_round = TRUE, sort = TRUE, drop_na = TRUE) {
-  question = if("try-error" %in% class(try(class(question), silent = TRUE))) substitute(question) else if("function" %in% class(question)) as.character(substitute(question)) else question # This is just my standard approach of accepting quoted ("x") and unquoted (`x` - deparse/substitute) arguments to specify the target column.
-  if(missing(weight)) { df = df %>% mutate(weight = 1) } else if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if("function" %in% class(weight)) { weight = as.character(substitute(weight)) } else { weight = weight } # Accept both `x` (deparse/substitute) and "x" - and if not specified, set weights to 1.
+  question = if("try-error" %in% class(try(class(question), silent = TRUE))) substitute(question) else if(any(c("function", "tbl") %in% class(question))) as.character(substitute(question)) else question # This is just my standard approach of accepting quoted ("x") and unquoted (`x` - deparse/substitute) arguments to specify the target column.
+  if(missing(weight)) { df = df %>% mutate(weight = 1) } else if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if(any(c("function", "tbl") %in% class(weight))) { weight = as.character(substitute(weight)) } else { weight = weight } # Accept both `x` (deparse/substitute) and "x" - and if not specified, set weights to 1.
   count(x = df, !!ensym(question), wt = !!ensym(weight), sort = sort) %>% # Tabulate
     { if (drop_na) drop_na(.) else . } %>% # (Optionally) Drop NA's
     mutate(pct = n/sum(.$n)) %>% # Generate percentages
@@ -158,16 +177,19 @@ ftw = function(df, question, weight = weight, n_round = TRUE, sort = TRUE, drop_
 #   order = NULL; Specify a vector of row labels to return the categories in that order.
 #   row_recodes = NULL; Specify a named vector (eg. c("Original" = "New")) to recode row categories.
 #   delim = delimiter for detecting multiple-response question and for MultiCoding() calls. Note: perl = TRUE.
+# Note: Returns a dataframe with attributes: the coding type (single- or multiple-response) for each variable called.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ct = function(df, row, col, weight, overall = TRUE, include_N = TRUE, pct = FALSE, count = FALSE, sort = TRUE, order = NULL, row_recodes = NULL, delim = ",(?!\\s)", decimals = NULL) {
   # browser()
-  row = if("try-error" %in% class(try(class(row), silent = TRUE))) deparse(substitute(row)) else if("function" %in% class(row)) as.character(substitute(row)) else row # Accept both `var` (deparse/substitute) and "var".
-  col = if("try-error" %in% class(try(class(col), silent = TRUE))) deparse(substitute(col)) else if("function" %in% class(col)) as.character(substitute(col)) else col # Accept both `var` (deparse/substitute) and "var".
-  if(! missing(weight)) { if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if("function" %in% class(weight)) { weight = as.character(substitute(weight)) } else { weight = weight } } else { df = mutate(df, weight = 1); weight = "weight"} # Accept both `var` (deparse/substitute) and "var" - and if not specified, revert to NULL.
+  row = if("try-error" %in% class(try(class(row), silent = TRUE))) deparse(substitute(row)) else if(any(c("function", "tbl") %in% class(row))) as.character(substitute(row)) else row # Accept both `var` (deparse/substitute) and "var".
+  col = if("try-error" %in% class(try(class(col), silent = TRUE))) deparse(substitute(col)) else if(any(c("function", "tbl") %in% class(col))) as.character(substitute(col)) else col # Accept both `var` (deparse/substitute) and "var".
+  if(! missing(weight)) { if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if(any(c("function", "tbl") %in% class(weight))) { weight = as.character(substitute(weight)) } else { weight = weight } } else { df = mutate(df, weight = 1); weight = "weight"} # Accept both `var` (deparse/substitute) and "var" - and if not specified, revert to NULL.
   # Baseline dataset - cases and variable combinations
-  t = bind_cols(select(df, !!ensym(weight)),
-                MultiCoding(df, row, label = "x._."), # Odd labels here are to avoid variable name edge-cases given the use of contains() below.
-                MultiCoding(df, col, label = "y._.")) %>% 
+  row_data = MultiCoding(df, row, label = "x._.") # Odd labels here are to avoid variable name edge-cases given the use of contains() below.
+  row_attr = attr(row_data, "coding_type")
+  col_data = MultiCoding(df, col, label = "y._.")
+  col_attr = attr(col_data, "coding_type")
+  t = bind_cols(select(df, !!ensym(weight)), row_data, col_data) %>% 
     rename(weight = weight) %>% 
     drop_na() %>% # Remove empty categories
     mutate(.id_. = row_number()) %>% # We need id's because we need to eventually count respondents, vs. their responses
@@ -220,7 +242,7 @@ ct = function(df, row, col, weight, overall = TRUE, include_N = TRUE, pct = FALS
     ) %>%
     arrange(.by_group = T) %>% # Split out by group, if applicable
     select(any_of(c(as.character(group_vars(.)), row, "count", sort)), everything(.)) # Sort columns if specified
-  return(crosstab)
+  return(crosstab %>% `attr<-`(row, row_attr) %>% `attr<-`(col, col_attr))
 }
 
 # Row Percents
@@ -467,6 +489,7 @@ ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL,
 # Arguments:
 #   dataset_in_quotes = Your dataframe. Someday I'll get smart enough to dispense with the quotes... (Piped into ct() calls)
 #   Q = The question (battery-prefix) you want to iterate over. (eg. Q2 would look for contains("Q2"), so it would grab Q2_1, Q2_2, etc.) (Piped into ct() calls)
+#   weight = "weight"; Name of your weighting varaible; set to NULL to ignore.
 #   Demos = A vector of all the demographic crosstabulation variables you want to be looped through. (Piped into ct() calls)
 #   Tabs = A vector of all the titles of the tabs you want generated for each respective demo-ctable() output. (Piped into ct() calls)
 #   Params = A vector of any ctable() parameters you want passed for each respective demo-ctable() output. (Piped into ct() calls)
@@ -492,7 +515,9 @@ ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weig
   out = NULL
   for (c in Categories) {
     Q = labels[[which(c == Categories),1]]
-    ct_tabset_dt(ct_code = paste0('ct(', dataset_in_quotes,', x, "', Q, '", weight = "', weight ,'"', if(!is.null(row_recodes)) paste0(', row_recodes = ', row_recodes), 
+    ct_tabset_dt(ct_code = paste0('ct(', dataset_in_quotes,', x, "', Q, 
+                                  if(!is.null(weight)) paste0('", weight = "', weight ,'"') else paste0('"'),
+                                  if(!is.null(row_recodes)) paste0(', row_recodes = ', row_recodes), 
                                   if(!is.null(order)) paste0(", order = c(", paste0('"', order, '"', collapse = ", "), "),"),
                                   if(!is.null(delim)) paste0(", delim = c(", paste0('"', delim, '"', collapse = ", "), "),"),
                                   ifelse(!is.null(sort), paste0(", sort = c(", paste0('"', sort, '"', collapse = ", "), "))"), ")")), Demos = Demos, Tabs = Tabs, Params = Params, HeadingLvl = (HeadingLvl + 1), output = TRUE, assign = paste0(output_lists, which(c == Categories)))
@@ -519,7 +544,7 @@ ct_tabset_dt_battery = function(dataset_in_quotes = "dataset", Q, weight = "weig
 #   delim = ",(?!\\s)"; Specify a PERL expression for a delimiter to detect multiple-response data options. Default is "comma-no-space".
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 MultiCoding = function(df, Q, label = NULL, delim = ",(?!\\s)") {
-  Q = if("try-error" %in% class(try(class(Q), silent = TRUE))) deparse(substitute(Q)) else if("function" %in% class(Q)) as.character(substitute(Q)) else Q # This is just my standard approach of accepting quoted ("x") and unquoted (`x`) arguments to specify the target column.
+  Q = if("try-error" %in% class(try(class(Q), silent = TRUE))) deparse(substitute(Q)) else if(any(c("function", "tbl") %in% class(Q))) as.character(substitute(Q)) else Q # This is just my standard approach of accepting quoted ("x") and unquoted (`x`) arguments to specify the target column.
   label = ifelse(is.null(label), paste0(Q, "_"), ifelse(label == "", "", paste0(label, "_")))
   resp = pull(df, {{Q}}) %>% .[!is.na(.)] %>% trimws(.) %>% strsplit(., delim, perl = TRUE) %>% unlist() %>% unique() # Identify the unique selection options using the delimiter
   dummies = matrix(NA, nrow(df), length(resp)) # Create empty matrix to populate dummies.
@@ -550,8 +575,8 @@ MultiCoding = function(df, Q, label = NULL, delim = ",(?!\\s)") {
 #   delim = ",(?!\\s)"; Specify a PERL expression for a delimiter to be passed to the MultiCoding() call. Default is "comma-no-space".
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 mc_ftw = function(df, Q, weight, round = TRUE, sort = TRUE, return_N = FALSE, raw_mode = FALSE, delimiter = ",(?!\\s)") {
-  Q = if("try-error" %in% class(try(class(Q), silent = TRUE))) substitute(Q) else if("function" %in% class(Q)) as.character(substitute(Q)) else Q # This is just my standard approach of accepting quoted ("x") and unquoted (`x` - deparse/substitute) arguments to specify the target column.
-  if(missing(weight)) { weight = "weight"; df = mutate(df, weight = 1) } else if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if("function" %in% class(weight)) { weight = as.character(substitute(weight)) } else { weight = weight } # Accept both `x` (deparse/substitute) and "x" - and if not specified, set weights to 1.
+  Q = if("try-error" %in% class(try(class(Q), silent = TRUE))) substitute(Q) else if(any(c("function", "tbl") %in% class(Q))) as.character(substitute(Q)) else Q # This is just my standard approach of accepting quoted ("x") and unquoted (`x` - deparse/substitute) arguments to specify the target column.
+  if(missing(weight)) { weight = "weight"; df = mutate(df, weight = 1) } else if("try-error" %in% class(try(class(weight), silent = TRUE))) { weight = deparse(substitute(weight)) } else if(any(c("function", "tbl") %in% class(weight))) { weight = as.character(substitute(weight)) } else { weight = weight } # Accept both `x` (deparse/substitute) and "x" - and if not specified, set weights to 1.
   if (!raw_mode) { # Normally we'll be going into this section. raw_mode means we're bringing our own data to the party here. But usually we need to run MultiCoding.
     mc = MultiCoding(df, as.character(ensym(Q)), label = "", delim = delimiter) # Generate the MultiCoding output
     df = select(df, {{weight}}, group_cols()) %>% # Maintains groups
@@ -584,8 +609,11 @@ mc_ftw = function(df, Q, weight, round = TRUE, sort = TRUE, return_N = FALSE, ra
 #   First few are pretty self-explanatory, excepting...
 #   Item_from_Q_in_quotes is the actual column title. You may need to run a {MultiCoding(df, Question_in_quotes} to get this straight.
 #   label_1 / label_0 = What you want 1 or 0 to be titled in the output.
+#   overall = TRUE; Returns an "Overall" summary total count for each grouping.
+#   include_N = TRUE; Adds "(N=)" indicator text to the first (category) column, with row totals.
+#   count = FALSE; Set to TRUE to return a total N for each row - usually only used in conjunction with pct to get both worlds.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, Weight_var_in_Quotes = NULL, sort = FALSE, order = NULL, label_1 = "Yes", label_0 = "No") {
+mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, Weight_var_in_Quotes = NULL, sort = FALSE, order = NULL, label_1 = "Yes", label_0 = "No", include_N = TRUE, overall = TRUE, count = FALSE) {
   if (is.null(Weight_var_in_Quotes)) { 
     temp = select(df, Demo_in_quotes) %>% 
       mutate(weight = 1) %>% 
@@ -594,7 +622,7 @@ mc_ct = function(df, Question_in_quotes, Item_from_Q_in_quotes, Demo_in_quotes, 
     temp = select(df, Weight_var_in_Quotes, Demo_in_quotes)
   }
   bind_cols(temp, MultiCoding(df, Question_in_quotes, label = "")[Item_from_Q_in_quotes]) %>%
-    ct(names(.)[2], names(.)[3], names(.)[1], sort = sort, order = order) %>%
+    ct(names(.)[2], names(.)[3], names(.)[1], sort = sort, order = order, include_N = include_N, overall = overall, count = count) %>%
     rename(!!label_0 := 2, !!label_1 := 3, !!Demo_in_quotes := 1) %>%
     .[,c(1,3,2)]
 }
@@ -624,11 +652,11 @@ battery_ftw = function(df, Q_prefix, weight = NULL, freq = FALSE, round_freq = T
       mutate(weight = 1) %>% 
       select(weight, everything())
   } else { 
-    temp = { if (contains) select(df, all_of(weight), contains(Q_prefix)) else select(df, all_of(weight, Q_prefix)) }
+    temp = { if (contains) select(df, all_of(weight), contains(Q_prefix)) else select(df, weight, all_of(Q_prefix)) }
   }
   temp = temp %>% 
     rename(weight = 1) %>% 
-    { if (contains) pivot_longer(., cols = contains(Q_prefix), names_to = "Q", values_to = "resp") else pivot_longer(., cols = Q_prefix, names_to = "Q", values_to = "resp") } %>% 
+    { if (contains) pivot_longer(., cols = contains(Q_prefix), names_to = "Q", values_to = "resp") else pivot_longer(., cols = all_of(Q_prefix), names_to = "Q", values_to = "resp") } %>% 
     drop_na %>% 
     group_by(Q, resp) %>% 
     summarize(count = sum(weight, na.rm = TRUE))
@@ -678,11 +706,12 @@ battery_ftw = function(df, Q_prefix, weight = NULL, freq = FALSE, round_freq = T
 #   scale = Set to "pct" (default) for percentages, "count" or specify a max number for counts. (The graph will only display 4 gridlines + 0. Your scale typically needs to be cleanly divisable by 4 for gridlines to not look awkward. Don't over-exceed the highest count by much or the last gridline won't display.)
 #   decimals = Number of decimals to include for percentage rounding.
 #   pos = Function for positioning text labels. Eg. position_nudge(x = 0, y = 0.05)
-#   colour = "#6baed6"; colour of the inside of the bar.
+#   colour = "#6baed6"; colour of the inside of the bar. You can also make this a vector if you want to colour individual bars (need a colour for each).
 #   border = TRUE; the colour you want the border to be, if applicable. Default is black. Disable with NULL.
 #   width = How thick do you want the bars? (In %, basically.)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Value_font_size = 6, Cat_wrap_length = 25, Cat_font_size = 20, Custom_N = NULL, subtitle = NULL, scale = "pct", decimals = 0, colour = "#6baed6", pos = position_stack(vjust = 0.9), border = TRUE, width = 0.8) {
+  if(length(colour) != 1 & length(colour) != nrow(df)) { stop(paste0("Colour parameter / specification length is greater than 1 but does not match the number of categories / bars (",  nrow(df), ").")) }
   df = df %>% 
     rename(resp = 1) %>% 
     mutate(resp = wrap.labels(resp, Cat_wrap_length))
@@ -735,8 +764,9 @@ frq_g_simple = function(df, Title_in_Quotes = "", Title_wrap_length = 55, Title_
 #   decimals = Number of decimals to include for percentage rounding.
 #   border = TRUE; Set a single border colour for all categories / bars in the stack. Default is black. Disable with NULL.
 #   divergent = NULL; This reorganizes the stack to a "divergent" set-up, with bars opposing each other from a central axis line. You'll need to supply a list of two vectors: 'left' and 'right', containing the quoted names of the columns you want on each side of the line, in order. Only those columns (bars) will be returned. Eg: divergent = list(left = c("Poor", "Fair"), right = c("Good", "Excellent")) -- Credit: Mark Kane, who came up the proof-of-concept here.
+#   divergent_scale = seq(-1,1,0.2); If you activate the "divergent" flag, you can change this to alter the numeric scale / axis.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = TRUE, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = TRUE, divergent = NULL) { 
+frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Title_font_size = 16, Subtitle_font_size = 14, Cat_font_size = 12, Cat_wrap_length = 34, YRightMargin = 0, Label_font_size = 5, N_mode = "t", decimals = 0, Legend_Font = 11, Legend_Rows = 2, Legend_Padding = 100, Legend_Preserve = TRUE, subtitle = NULL, Fcolour = "Blues", colours = NULL, border = TRUE, divergent = NULL, divergent_scale = seq(-1,1,0.2)) { 
   if("try-error" %in% class(try(select(df, count, resp), silent = TRUE))) stop('This function requires a dataframe with columns "resp" (categories) and "count" (n). Supplied dataframe is incomplete.') # Error-checking the dataframe
   # N-mode labeling
   if (N_mode == "t") { 
@@ -770,7 +800,7 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
     coord_flip() + # Horizontal graph
     scale_x_discrete(limits=rev(Qlabels)) +
     { if (!is.null(divergent)) scale_fill_manual(breaks = rev(c(rev(FillOrder[1:length(divergent[['left']])]), FillOrder[(length(divergent[['left']])+1):sum(lengths(divergent))])), values = rev(colours)) else scale_fill_manual(values = rev(colours)) } + # For divergent graphs: additionally flipping the order of the "left side" columns.
-    { if (!is.null(divergent)) scale_y_continuous(breaks = seq(-1,1,0.2), labels = pct_format(abs(seq(-1,1,0.2))), limits = c(-1,1)) else scale_y_continuous(breaks = seq(0,1,0.1), labels = pct_format(seq(0,1,0.1))) } + # For divergent graphs: the scale needs to be -1 to +1, rather than 0-1.
+    { if (!is.null(divergent)) scale_y_continuous(breaks = divergent_scale, labels = pct_format(abs(divergent_scale)), limits = c(min(divergent_scale),max(divergent_scale))) else scale_y_continuous(breaks = seq(0,1,0.1), labels = pct_format(seq(0,1,0.1))) } + # For divergent graphs: the scale needs to be -1 to +1, rather than 0-1.
     guides(fill=guide_legend(nrow=Legend_Rows,byrow=TRUE,reverse=TRUE)) +
     patchwork::plot_annotation(title = tryCatch(wrap.labels(Title_in_Quotes, Title_wrap_length), error = function(e){stop("Error: Title is not a string. Are you accidentally piping in a dataframe here?")}), subtitle=ifelse(!is.null(subtitle), subtitle, ifelse(N_mode == "t", paste0("N = ",N), "")), theme = theme(plot.title = element_text(hjust = 0.5, size = Title_font_size, margin = margin(0,0,8,0)), plot.subtitle = element_text(hjust = 0.5, size = Subtitle_font_size, color="#525252", face = "italic", margin = margin(0,0,ifelse(any(!is.null(subtitle) | N_mode == "t"),5,-10),0)))) + # Title & subtitle
     # Theme (aesthetic) settings
@@ -799,7 +829,7 @@ frq_g_battery = function(df, Title_in_Quotes = NULL, Title_wrap_length = 55, Tit
 #   title = Title of the graph
 #   Title_wrap_length = 55; How long the text of the title should be allowed to run before spilling to a new line. Uses the wrap.labels() function.
 #   groups; A character vector with the value columns you want displayed in the stacked bar, in order.
-#   pct = "col"; Whether to run a col_percents() ("col") or row_percents() ("row") call on the values. If you're piping in counts, this is good. If you've already converted things to percents, set this to FALSE.
+#   pct = "col"; Whether to run a col_percents() ("col") or row_percents() ("row") call on the values. If you're piping in counts, this is good. If you've already converted things to percents, set this to some random string ("lol"). If you want the counts instead of pcts, set to FALSE.
 #   decimals = Number of decimals on value labels
 #   scale = If you're wanting to specify your own scale, provide the breaks you want on the X axis.
 #   border = "#00000060"; Border colour of the bars
@@ -838,9 +868,9 @@ frq_g_overlap = function(df, title = "Chart", Title_wrap_length = 55, groups = n
     { if (length(groups) > 3) geom_text(data= ~ filter(., Group == groups[4]), {if (pct != F) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[4], y = label_nudge)) } +
     { if (length(groups) > 4) geom_text(data= ~ filter(., Group == groups[5]), {if (pct != F) aes(label = ifelse(value>0,paste0(round(value*100,decimals),"%"),"")) else aes(label = ifelse(value>0,formatC(value,format="f",big.mark=",",digits=decimals),""))}, size = label_font_size, position = position_nudge(x = x_pos[5], y = label_nudge)) } +
     scale_fill_manual(values=colours, limits = groups) +
-    geom_vline(xintercept=seq(-0.5, length(groups)+1.5, 1), colour="gray") + # Gridlines
+    geom_vline(xintercept=seq(0.5, nrow(df)+1.5, 1), colour="gray") + # Gridlines
     patchwork::plot_annotation(title = tryCatch(wrap.labels(title, Title_wrap_length), error = function(e){stop("Error: Title is not a string. Are you accidentally piping in a dataframe here?")}), theme = theme(plot.title = element_text(hjust = 0.5, size = 16, margin = margin(0,0,8,0)))) +
-    {if (pct != F) scale_y_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0%","25%","50%","75%","100%")) else {if (is.null(scale)) scale_y_continuous(breaks = seq(0, ceiling(max(select_if(BarData_Long, is.numeric), na.rm = T)), ceiling(max(select_if(BarData_Long, is.numeric), na.rm = T) / 5))) else scale_y_continuous(breaks = scale)}} +
+    {if (!pct %in% c(F)) scale_y_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0%","25%","50%","75%","100%")) else {if (is.null(scale)) scale_y_continuous(breaks = seq(0, ceiling(max(select_if(BarData_Long, is.numeric), na.rm = T)), ceiling(max(select_if(BarData_Long, is.numeric), na.rm = T) / 5))) else scale_y_continuous(breaks = scale)}} +
     coord_flip() +
     theme(legend.position="bottom",
           legend.title = element_blank(),
@@ -872,10 +902,11 @@ frq_g_overlap = function(df, title = "Chart", Title_wrap_length = 55, groups = n
 #   bins = Specify the number of bins in the plot. 
 #   discrete = TRUE; Whether each bin is labeled as a discrete value (T), or between two values (F). The latter is more useful for percent ranges.
 #   frq = FALSE; Specify whether you want the Y-axis for the bins to be frequency counts or percent of total?
+#   decimals = 0; If showing percentages as the bar labels (frq = FALSE), how many decimals to show?
 #   x_axis = TRUE; Show or hide (FALSE) the x-axis.
 #   x_label = Manually specify the label on the x-axis.
 #   x_labels_type = "frq"; Whether the x-axis labels should be shown as raw values, or ("pct") percent-formatted.
-#   x_pct_accuracy = 1; Decimal format for x-axis percent labels, if activated. See scales::label_percent for syntax, but basically, 0.001 shows 3 decimal places, etc.
+#   x_pct_accuracy = 1; Decimal format for x-axis percent labels, if activated (via "pct" above). See scales::label_percent for syntax, but basically, 0.001 shows 3 decimal places, etc.
 #   y_label = Manually specify the label on the y-axis.
 #   font = Font size of the y-scale and the axes.
 #   data_labels = TRUE; Show or hide (FALSE) data-labels over each bin.
@@ -883,7 +914,7 @@ frq_g_overlap = function(df, title = "Chart", Title_wrap_length = 55, groups = n
 #   title = Specify the string title over the plot.
 #   title_font = Font size of the title.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by = NULL, discrete = TRUE, x_axis = TRUE, x_size = 12, x_pct_accuracy = 1, x_label = NULL, x_label_font = 4, frq = FALSE, y_label = NULL, data_labels = TRUE, x_labels_type = "frq", colour = "lightblue", title = NULL, title_font = 16) {
+histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by = NULL, discrete = TRUE, x_axis = TRUE, x_size = 12, x_pct_accuracy = 1, x_label = NULL, x_label_font = 4, frq = FALSE, decimals = 0, y_label = NULL, data_labels = TRUE, x_labels_type = "frq", colour = "lightblue", title = NULL, title_font = 16) {
   df = select(df, {{var}}) # Select the data
   # Coerce to numeric if necessary...
   if (lapply(select(df, {{var}}), class) != "numeric") {
@@ -928,14 +959,12 @@ histo = function(df, var, font = 14, start = NULL, stop = NULL, bins = NULL, by 
     # Hovering data / bin labels - have to do each layer conditionally again because of needing to invoke "bins =" vs. "breaks =" again.
     { if (data_labels) {
       if (discrete) {
-        stat_bin(bins = bins + 1, geom = "text", { if(frq == FALSE) aes(y=(..count..)/sum(..count..), label=pct_format((..count..)/sum(..count..))) else aes(label=(..count..)) }, hjust = -0.25, angle = 90, size=x_label_font) 
+        stat_bin(bins = bins + 1, geom = "text", { if(frq == FALSE) aes(y=(..count..)/sum(..count..), label=pct_format((..count..)/sum(..count..), decimals = 1)) else aes(label=(..count..)) }, hjust = -0.25, angle = 90, size=x_label_font) 
       } else {
-        stat_bin(breaks = seq(start, stop, by = by), geom = "text", { if(frq == FALSE) aes(y=(..count..)/sum(..count..), label=pct_format((..count..)/sum(..count..))) else aes(label=(..count..)) }, hjust = -0.25, angle = 90, size=x_label_font) 
+        stat_bin(breaks = seq(start, stop, by = by), geom = "text", { if(frq == FALSE) aes(y=(..count..)/sum(..count..), label=pct_format((..count..)/sum(..count..), decimals = 1)) else aes(label=(..count..)) }, hjust = -0.25, angle = 90, size=x_label_font) 
       }
     } }
 }
-
-
 
 
 
