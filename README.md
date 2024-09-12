@@ -6,12 +6,11 @@ This is a place where CIRPA members and IR professionals can learn new skills, s
 ***New here, or to GitHub? Go ahead and [read our introductory guide](Guide.md) about how to get started using what we have here, and contributing your own knowledge and creations!***
 
 ## What's new? (Top 5)
-* *[05/12/2020] - Added another contribution from Alex - an auto-reporting paradigm in R.*
-* *[08/19/2020] - Added some contributions from Fraser Hay (Conestoga College, ON) - Survey analysis in R.*
-* *[Nov/2020] - Some adjustments to Fraser's R functions, and a python script for loop-sending emails. Also uploaded a CIRPA presentation.*
-* *[July/2022] - Additional adjustments to Fraser's R functions, and two python scripts for working in Excel. Finally - I can paste values into a formatted Excel template from R / Python!*
+* *[September/2024] - Fraser's R Functions updates, and adding a File Path function - useful for R-coding teams working in shared file systems.*
 * *[December/2023] - Adding a contribution from Dawn Macdonalod (Yukon University) for dealing with the dual-row column headers out of SurveyMonkey. Also some updates to Fraser's R Functions.*
-
+* *[July/2022] - Additional adjustments to Fraser's R functions, and two python scripts for working in Excel. Finally - I can paste values into a formatted Excel template from R / Python!*
+* *[Nov/2020] - Some adjustments to Fraser's R functions, and a python script for loop-sending emails. Also uploaded a CIRPA presentation.*
+* *[08/19/2020] - Added some contributions from Fraser Hay (Conestoga College, ON) - Survey analysis in R.*
 
 ## Features
 
@@ -45,7 +44,7 @@ You can easily download or work with files by creating your own clone or fork of
 
 ---
 ### Want to talk?
-Have a question about what's here? If your question is about a submission, you can email the authour. If not, contact [Stephen Childs](mailto:sechilds@yorku.ca) (York University) or [Fraser Hay](mailto:fhay@conestogac.on.ca) (Conestoga College).
+Have a question about what's here? If your question is about a submission, you can email the authour. If not, contact [Stephen Childs](mailto:sechilds{at}yorku.ca) (York University) or [Fraser Hay](mailto:fhay{at}conestogac.on.ca) (Conestoga College).
 
 Want to pose an idea or discuss something about coding or IR in general? The [CIRPA Member365 Discussion Forums](https://cirpa.member365.com/sharingnetwork/discussion/viewAllDiscussions/) is a great place to do it. Login and make a post! (Remember, Limited Membership is free!)
 
