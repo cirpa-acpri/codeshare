@@ -126,10 +126,10 @@ MIDENT_lookup = data[['MIDENT_lookup']]
 # Define Target(s)
 # ============================================================================================
 # City target
-area = "Belleville"   # City / municipal area (eg. "Barrie")
+area = "Cornwall"   # City / municipal area (eg. "Barrie")
 
 # College target - Name one College (eg. "Conestoga")
-college = ""      # Default is empty: ""
+college = "Conestoga"      # Default is empty: ""
 
 # Term
 Term = "FALL"     # Either FALL, WINTER or SPRING intakes
@@ -206,7 +206,7 @@ registrants_college = activity_college %>%
 ::: {custom-style="Figure"} 
 ```{r Logo, out.width="600px"}
 # Note: typically to include graphics I would point R to a local file. But this example needs to be self-contained, so go-go-gadget web links!
-include_graphics("https://www.leadsquared.com/wp-content/uploads/2021/11/banner-6.png")
+include_graphics("https://studyportals.com/wp-content/uploads/2016/05/Front_page_Banners-e1564478008233.png")
 ```
 :::
 
@@ -239,8 +239,6 @@ Intake Term: **`r Term`**
 # reports. Another would be to conditionally run other (child) .RMD report files and merge in the results.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 ```
-
-
 
 `r ifelse(College == "", "", paste0("College Statistics for: **", College, "**"))`
 
