@@ -447,7 +447,7 @@ ctable = function(df, Col1Name = NULL, Col1Width = "20%", OtherColWidths = "10%"
 # --- To preview the output, paste and run the following:
 # for (i in 1:length(ct.dt.out[['dt']])) {print(ct.dt.out[['dt']][[i]])}
 # --- Include knit command *in-text* below for rendering (remember to end the tabset):
-# `r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\\n')`"
+# `r paste(knit(text = ct.dt.out[['knit_code']]), collapse = '\\n')`
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ct_tabset_dt = function(ct_code_in_quotes_x_as_demo, Demos, Tabs, Params = NULL, HeadingLvl = 4, output = FALSE, assign = "ct.dt.out") {
   if (is.null(Params)) Params = rep("", length(Demos))
@@ -558,7 +558,9 @@ MultiCoding = function(df, Q, label = NULL, delim = ",(?!\\s)") {
     type = "Single-response"
   }
   colnames(dummies) <- paste0(rep(label, length(resp)), resp) # Column names
-  as.data.frame(dummies) %>% `attr<-`("coding_type", type) # Return the dataframe (with discernable attribute)
+  if (length(dummies) > 0) {
+    as.data.frame(dummies) %>% `attr<-`("coding_type", type) # Return the dataframe (with discernable attribute)
+  } else { warning("Column / data supplied is all NA; returning NA."); return(NA) }
 }
 
 

@@ -126,7 +126,7 @@ MIDENT_lookup = data[['MIDENT_lookup']]
 # Define Target(s)
 # ============================================================================================
 # City target
-area = "Cornwall"   # City / municipal area (eg. "Barrie")
+area = "Milton"   # City / municipal area (eg. "Barrie")
 
 # College target - Name one College (eg. "Conestoga")
 college = "Conestoga"      # Default is empty: ""
