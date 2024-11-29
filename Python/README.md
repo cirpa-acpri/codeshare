@@ -40,4 +40,3 @@ You can easily download or work with files by creating your own clone or fork of
 * [Pycel](https://github.com/dgorissen/pycel): Pycel is a small python library that can translate an Excel spreadsheet into executable python code which can be run independently of Excel.
 * [Survey Text Data Analysis](https://github.com/cirpa-acpri/UBC-PAIR-SurveyTextAnalysis): Contributed by UBC's PAIR team, this is a method of analysis of open ended text responses to surveys using Python.
 * Want to write Python in real-time with someone else? Try out [DeepNote](https://deepnote.com/). *(Post-secondary people can get unlimited collaboration with the "academia" plan upon request!)*
-

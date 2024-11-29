@@ -55,7 +55,7 @@ by teacherfacultytype: hist teach_avg, freq norm w(1)
 ```
 
 **Second**, send it over to us! You have two options to do this:
-1. **Keep it simple**: Send your creations to [Stephen Childs](mailto:sechilds@yorku.ca) (York University) or [Fraser Hay](mailto:fhay@conestogac.on.ca) (Conestoga College). We'll get your creations up here as promptly as we can.
+1. **Keep it simple**: Send your creations to [Stephen Childs](mailto:Stephen.Childs}{at}humber.ca) (Humber College) or [Fraser Hay](mailto:fhay{at}conestogac.on.ca) (Conestoga College). We'll get your creations up here as promptly as we can.
 2. **Fork it**: [Create a fork](https://help.github.com/en/articles/fork-a-repo) (or branch) of this repository and add in your new code to the appropriate place, then create a [pull request](https://help.github.com/en/articles/about-pull-requests) (with a good description of your additions / changes) to merge them into the master. We'll review it and work with you to get things up and running.
 
 ****Please note*** *that all materials that are posted to this repository are considered considered under the [MIT License](https://github.com/Sopwith/IR/blob/master/LICENSE.md). Please consider this fact, and your ownership of the code, before uploading or sharing any new code.*
