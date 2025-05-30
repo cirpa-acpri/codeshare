@@ -1,11 +1,12 @@
 # CIRPA-ACPRI GitHub Sharing Repository <img src="https://is4-ssl.mzstatic.com/image/thumb/Purple128/v4/c1/37/2a/c1372a8b-7779-cc88-917f-17db385bdae2/source/512x512bb.jpg" alt="CIRPA Logo" title="CIRPA" width="100"/>
 ### *What is this place?*
 
-This is a place where CIRPA members and IR professionals can learn new skills, see what their IR fellows are using, contribute their own code & creations for others to see.
+This is a place where CIRPA members and IR professionals can learn new skills, see what their IR fellows are using, as well as contribute their own code & creations for others to see.
 
 ***New here, or to GitHub? Go ahead and [read our introductory guide](Guide.md) about how to get started using what we have here, and contributing your own knowledge and creations!***
 
 ## What's new? (Top 5)
+* *[May/2025] - Adding a python script for classifying open-ended survey comments using Local LLM AI.*
 * *[November/2024] - Adding a link to the [files from the CIRPA 2024 R Workshop.](https://drive.google.com/drive/folders/1wcEd0A1jP14Ie58qqUneN3mHTcUx0HmO?usp=sharing)*
 * *[September/2024] - Fraser's R Functions updates, and adding a File Path function - useful for R-coding teams working in shared file systems.*
 * *[December/2023] - Adding a contribution from Dawn Macdonalod (Yukon University) for dealing with the dual-row column headers out of SurveyMonkey. Also some updates to Fraser's R Functions.*
